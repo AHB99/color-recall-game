@@ -5,6 +5,7 @@ import { StyleSheet, View, Text, Dimensions, Button,
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ColorConversionFunctions from './ColorConversionFunctions';
 
 let testData = [{color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'},
                 {color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'}];
@@ -54,7 +55,8 @@ props: color
 class ColorChoiceListItem extends React.Component {
 
     _choicePressed = (param) => {
-        alert('pressed now' + param);
+        //alert('pressed now' + param);
+        ColorConversionFunctions.xyzToLab(35,42,69);
     }
 
     render(){
