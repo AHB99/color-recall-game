@@ -1,24 +1,24 @@
 'use strict'
 import React, { Component } from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, Button,
+        FlatList, TouchableWithoutFeedback, TouchableOpacity, TouchableHighlight } from 'react-native';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FlatList } from 'react-native-gesture-handler';
 
 let testData = [{color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'},
                 {color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'}];
 
 
 export default class MainScreen extends React.Component{
+    //For title
     static navigationOptions = {
         title: 'Main',
     }
 
     //temp for demo
     _renderColorBox = ({item}) => {
-        return (
-        <View style={{height: 200, backgroundColor: item.color, borderRadius: 10, margin: 20}}/>);
+        return (<ColorChoiceListItem color={item.color}/>);
     };
 
 
@@ -43,7 +43,37 @@ export default class MainScreen extends React.Component{
            
         </SafeAreaView>
         );
+
+        
     }
+}
+
+/*
+props: color
+ */
+class ColorChoiceListItem extends React.Component {
+
+    _choicePressed = (param) => {
+        alert('pressed now' + param);
+    }
+
+    render(){
+        return(
+            //Using Dimensions because JSX '%' unit seems to block scrolling
+            <TouchableWithoutFeedback 
+            onPress={this._choicePressed.bind(this,this.props.color)}
+            disabled={false}>
+                <View 
+                style={
+                    {height: (Dimensions.get('window').height*0.3), 
+                    backgroundColor: this.props.color, 
+                    borderRadius: 10, 
+                    margin: 20}}
+                />
+            </TouchableWithoutFeedback>
+        );
+    }
+
 }
 
 ///Styles---------------
