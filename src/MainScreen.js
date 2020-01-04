@@ -17,7 +17,6 @@ export default class MainScreen extends React.Component{
         title: 'Main',
     }
 
-    //temp for demo
     _renderColorBox = ({item}) => {
         return (<ColorChoiceListItem color={item.color}/>);
     };
@@ -55,8 +54,7 @@ props: color
 class ColorChoiceListItem extends React.Component {
 
     _choicePressed = (param) => {
-        //alert('pressed now' + param);
-        ColorConversionFunctions.xyzToLab(35,42,69);
+        alert('pressed now' + param);
     }
 
     render(){
