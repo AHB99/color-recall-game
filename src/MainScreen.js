@@ -10,11 +10,14 @@ import * as ColorConversionFunctions from './ColorConversionFunctions';
 let testData = [{color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'},
                 {color: 'blue'}, {color: 'green'}, {color: 'yellow'}, {color: 'black'}];
 
-
 export default class MainScreen extends React.Component{
     //For title
     static navigationOptions = {
         title: 'Main',
+    }
+
+    constructor(props){
+        super(props);
     }
 
     _renderColorBox = ({item}) => {
@@ -23,6 +26,7 @@ export default class MainScreen extends React.Component{
 
 
     render(){
+        testData = generateRandomListOfColors(5);
         let rememberComponent = (
         <SafeAreaView style={styles.container}>
             <Text style={styles.mainText}>Remember this color!</Text>
@@ -54,12 +58,12 @@ props: color
 class ColorChoiceListItem extends React.Component {
 
     _choicePressed = (param) => {
-        alert('pressed now' + param);
+        //alert('pressed now: ' + param);
     }
 
     render(){
         return(
-            //Using Dimensions because JSX '%' unit seems to block scrolling
+            //Using Dimensions because '%' unit seems to block scrolling
             <TouchableWithoutFeedback 
             onPress={this._choicePressed.bind(this,this.props.color)}
             disabled={false}>
@@ -76,7 +80,40 @@ class ColorChoiceListItem extends React.Component {
 
 }
 
-///Styles---------------
+//---Free functions---
+
+//For unrelated/non-similar colors
+function generateRandomListOfColors(numberOfColors){
+    let colorsList = [];
+    for (let i = 0; i < numberOfColors; ++i){    
+        colorsList.push(generateRandomColor());
+    }
+    return colorsList;
+}
+
+//Returns object of property 'color' with value: '#' followed by hex color code
+function generateRandomColor(){
+    let rgbString = ('#' 
+    + generateRandom2DigitHex()
+    + generateRandom2DigitHex()
+    + generateRandom2DigitHex());
+    return {color: rgbString};
+}
+
+function generateRandom2DigitHex(){
+    let ranHex = generateRandomInteger(0,256).toString(16);
+    if (ranHex.length == 1){
+        ranHex = '0' + ranHex;
+    }
+    return ranHex;
+}
+
+//Max not included
+function generateRandomInteger(min, max) {
+    return Math.floor(Math.random() * (max - min) ) + min;
+}
+
+//---Styles---
 
 const elem = {
     margin: 20
