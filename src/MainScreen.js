@@ -26,7 +26,7 @@ export default class MainScreen extends React.Component{
 
 
     render(){
-        testData = generateListOfSimilarColors({L: 60, a: -9, b: 73}, 6, 30);
+        testData = generateListOfSimilarColors(generateRandomLabColor(), 6, 30);
 
         let rememberComponent = (
         <SafeAreaView style={styles.container}>
@@ -83,11 +83,18 @@ class ColorChoiceListItem extends React.Component {
 }
 
 class RgbColorBundle {
+    constructor(rgbColor, deltaE){
+        this.rgbColor = rgbColor;
+        this.deltaE = deltaE;
+    }
 
 }
 
 class LabColorBundle {
-
+    constructor(labColor, deltaE){
+        this.labColor = labColor;
+        this.deltaE = deltaE;
+    }
 }
 
 //---Free functions---
@@ -106,58 +113,44 @@ function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimi
     if ((numberOfColors % 2) !== 0){
         (generateRandomInteger(0,2)===0) ? ++numOfColsInASide : ++numOfColsInBSide;
     }
-    console.log('#a: ' + numOfColsInASide + ' #b: ' + numOfColsInBSide);
 
-    let listOfAColors = _getListOfSimilarLabColors(originalLabColor, deltaLimit, true, numOfColsInASide);
-    let listOfBColors = _getListOfSimilarLabColors(originalLabColor, deltaLimit, false, numOfColsInBSide);
+    let listOfAColors = _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide);
+    let listOfBColors = _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide);
 
-    console.log('similarA: ' + JSON.stringify(listOfAColors) + 'similarB: ' + JSON.stringify(listOfBColors));
-
-    listOfAColors = _convertListOfLabColorsToRgbString(listOfAColors);
-    listOfBColors = _convertListOfLabColorsToRgbString(listOfBColors);
-
-    console.log('as rgb...')
-    console.log('similarA: ' + JSON.stringify(listOfAColors) + 'similarB: ' + JSON.stringify(listOfBColors));
-
+    listOfAColors = _convertListOfLabColorBundlesToRgbColorBundles(listOfAColors);
+    listOfBColors = _convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
 
     let finalList = listOfAColors.concat(listOfBColors);
-    let originalColor = {
-        labColor: originalLabColor,
-        deltaE: 'goal'
-    }
-    originalColor = _convertLabColorToRgbString(originalColor);
+    let originalColor = new LabColorBundle(originalLabColor, 'goal');
+
+    originalColor = _convertLabColorBundleToRgbColorBundle(originalColor);
     finalList.push(originalColor);
-    console.log('Final rgb list: ' + JSON.stringify(finalList));
     return finalList;
 }
 
-function _convertListOfLabColorsToRgbString(listOfLabColors) {
-    return (listOfLabColors.map((color) => _convertLabColorToRgbString(color)));
+function _convertListOfLabColorBundlesToRgbColorBundles(listOfLabColors) {
+    return (listOfLabColors.map((color) => _convertLabColorBundleToRgbColorBundle(color)));
 }
 
-function _convertLabColorToRgbString(color){
+function _convertLabColorBundleToRgbColorBundle(colorBundle){
     let rgbValue = ColorConversionFunctions.labToRgb(
-        color.labColor.L,
-        color.labColor.a,
-        color.labColor.b
+        colorBundle.labColor.L,
+        colorBundle.labColor.a,
+        colorBundle.labColor.b
     );
-    console.log('labValue: ' + JSON.stringify(color.labColor) + 'rgbValue: ' + JSON.stringify(rgbValue));
     let rgbString = ('#' +
-        convertDecimalNumberTo2DigitHexString(Math.floor(rgbValue.r)) + 
-        convertDecimalNumberTo2DigitHexString(Math.floor(rgbValue.g)) + 
-        convertDecimalNumberTo2DigitHexString(Math.floor(rgbValue.b))
+        convertDecimalNumberTo2DigitHexString(rgbValue.r) + 
+        convertDecimalNumberTo2DigitHexString(rgbValue.g) + 
+        convertDecimalNumberTo2DigitHexString(rgbValue.b)
     );
-    return ({
-        rgbColor: rgbString,
-        deltaE: color.deltaE
-    });
+    return new RgbColorBundle(rgbString, colorBundle.deltaE);
 }
 
 /*
 Params: Original color, furthest deviation, boolean whether 'a' varies, numOfCols required
 Returns: List of object {labColor, deltaE}
  */
-function _getListOfSimilarLabColors(originalLabColor, deltaLimit, isAVarying, numberOfColors) {
+function _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, isAVarying, numberOfColors) {
     let forwardColorComponent, backwardColorComponent;
 
     if (isAVarying){
@@ -189,33 +182,30 @@ function _getListOfSimilarLabColors(originalLabColor, deltaLimit, isAVarying, nu
     //Aggregator
     let currentDeltaE = componentGap;
 
-    let listOfColors = [];
+    let listOfColorBundles = [];
     for (let i = 0; i < numberOfColors; ++i){
-        let currentColor;
+        let currentColorBundle;
         if (isAVarying){
-            currentColor = {
-                labColor:{
+            currentColorBundle = new LabColorBundle({
                     L: originalLabColor.L,
                     a: originalLabColor.a + currentDeltaE,
                     b: originalLabColor.b
-                },
-            };
+                }
+            , Math.abs(currentDeltaE));
         }
         else{
-            currentColor = {
-                labColor:{
+            currentColorBundle = new LabColorBundle({
                     L: originalLabColor.L,
                     a: originalLabColor.a,
                     b: originalLabColor.b + currentDeltaE
-                },
-            };
+                }
+            , Math.abs(currentDeltaE));
         }
-        currentColor.deltaE = Math.abs(currentDeltaE);
-        listOfColors.push(currentColor);  
+        listOfColorBundles.push(currentColorBundle);  
 
         currentDeltaE += componentGap;   
     }
-    return listOfColors;
+    return listOfColorBundles;
 }
 
 
