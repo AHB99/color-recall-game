@@ -10,6 +10,15 @@ export function labToRgb(L, a, b){
     return xyzToRgb(xyzResult.x, xyzResult.y, xyzResult.z);
 }
 
+//Uses CIE76 formula
+export function deltaE(L1, a1, b1, L2, a2, b2){
+    return Math.sqrt(
+        Math.pow(L1-L2, 2) +
+        Math.pow(a1-a2, 2) +
+        Math.pow(b1-b2, 2)
+    );
+}
+
 function rgbToXyz(sR, sG, sB){
     //Adapted from http://www.easyrgb.com/en/math.php
     let var_R = ( sR / 255 );
@@ -164,10 +173,26 @@ function xyzToRgb(X, Y, Z){
     let sG = var_G * 255;
     let sB = var_B * 255;
 
+    sR = keepRgbInRange(sR);
+    sG = keepRgbInRange(sG);
+    sB = keepRgbInRange(sB);
+
+
     return ({
         r: sR,
         g: sG, 
         b: sB
     });
+}
+
+function keepRgbInRange(component){
+    component = Math.floor(component);
+    if (component < 0){
+        return 0;
+    }
+    else if (component > 255){
+        return 255;
+    }
+    return component;
 }
 
