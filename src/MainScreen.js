@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ColorConversionFunctions from './ColorConversionFunctions';
 import * as ColorGenerationFunctions from './ColorGenerationFunctions';
 
-let testData;
 
 /**
  * Component displaying the screen for one full game.
@@ -19,6 +18,9 @@ let testData;
  * @member {GameMode} state.gameMode - Current game mode to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
  * @member {{L: number, a: number, b: number}} state.currentLabColor
+ * @member {number} state.currentRoundScore 
+ * @member {number} state.totalScore 
+ * @member {number} state.roundNumber 
  */
 export default class MainScreen extends React.Component {
     //For title
@@ -36,40 +38,33 @@ export default class MainScreen extends React.Component {
         REWARD: Symbol("reward"),
     });
 
-    static DELTA_LIMIT = 40;
-
     constructor(props){
         super(props);
-
-        this.state = {
-            gameMode: MainScreen.GameMode.REMEMBER,
-            currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),
-            currentRoundScore: 0,            
-        }
-        this.state.currentListOfColors = 
-        ColorGenerationFunctions.generateListOfSimilarColors(this.state.currentLabColor, 4, MainScreen.DELTA_LIMIT);
+        this.state = this._generateInitialState();
 
     }
 
     render(){
-        //DEBUG
-       // return null;
+
         if (this.state.gameMode === MainScreen.GameMode.REMEMBER){
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
             color={currentRgbString} 
             initialTime={5}
-            onTimeExpired={this._onRememberTimeExpired}/>
+            onTimeExpired={this._onRememberTimeExpired} />
         }
         else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
             onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
             initialTime={5}
-            onTimeExpired={this._onRecallTimeExpired}/>;
+            onTimeExpired={this._onRecallTimeExpired} />;
         }       
         else if (this.state.gameMode === MainScreen.GameMode.REWARD){
-            return <RewardComponent score={this.state.currentRoundScore}/>
+            return <RewardComponent 
+            currentRoundScore={this.state.currentRoundScore}
+            totalScore={this.state.totalScore}
+            onOkPressed={this._onOkPressedInReward} />
         }
     }
 
@@ -85,26 +80,99 @@ export default class MainScreen extends React.Component {
         this._managePlayerRewardForRound(true);
     }
 
+    /**
+     * Callback for Reward screen OK button to advance round number and handle game over.
+     */
+    _onOkPressedInReward = () => {
+        if (this.state.roundNumber !== MainGameConstants.MAX_ROUNDS) {     
+            let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();  
+            this.setState((state, props) => {
+                return ({
+                    roundNumber: state.roundNumber + 1,
+                    gameMode: MainScreen.GameMode.REMEMBER,
+                    currentLabColor: newColorAndList.labColor,
+                    currentListOfColors: newColorAndList.listOfSimilarColors
+                });
+            });
+        }
+        else {
+            this._restartGame();
+        }
+
+    }
+
+    /**
+     * Updates the current and total score, and advances player to Reward screen for current round.
+     * 
+     * @param {boolean} didTimeExpire 
+     * @param {number} deltaE - Distance between chosen and correct colors for current game round.
+     */
     _managePlayerRewardForRound(didTimeExpire, deltaE){
+        let roundScore = 0;
+
         if (didTimeExpire){
-            this.setState({
-                gameMode: MainScreen.GameMode.REWARD,
-                currentRoundScore: 0
-            });
-            return;
+            roundScore = 0;
         }
-        if (deltaE === 0){
-            this.setState({
-                gameMode: MainScreen.GameMode.REWARD,
-                currentRoundScore: 100
-            });
-            return;
+        else if (deltaE === 0){
+            roundScore = 100;
         }
-        this.setState({
-            gameMode: MainScreen.GameMode.REWARD,
-            currentRoundScore: 100*(Math.abs(deltaE-MainScreen.DELTA_LIMIT)/MainScreen.DELTA_LIMIT),
+        else {
+            roundScore = 100*(
+                    Math.abs( deltaE - MainGameConstants.DELTA_LIMIT ) / MainGameConstants.DELTA_LIMIT );
+        }
+
+        this.setState((state, props) => {
+            return ({
+                currentRoundScore: roundScore,
+                totalScore: state.totalScore + roundScore,
+                gameMode: MainScreen.GameMode.REWARD
+            });
         });
     }
+
+    _restartGame() {
+        this.setState(this._generateInitialState());
+    }
+
+    /**
+     * Helper function to get state object with all default properties, for constructor and restart.
+     */
+    _generateInitialState(){
+        let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();
+
+        return ({
+            gameMode: MainScreen.GameMode.REMEMBER,
+            currentLabColor: newColorAndList.labColor,
+            currentRoundScore: 0,
+            totalScore: 0,
+            roundNumber: 1, 
+            currentListOfColors: newColorAndList.listOfSimilarColors
+        });
+    }
+
+    /**
+     * Helper function to get random Lab color and list of colors similar to it.
+     * 
+     * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}}
+     */
+    _getRandomLabColorAndListOfSimilarColors(){
+        let labColor = ColorGenerationFunctions.generateRandomLabColor();
+        let listOfSimilarColors = ColorGenerationFunctions.generateListOfSimilarColors(
+            labColor,
+            MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES,
+            MainGameConstants.DELTA_LIMIT
+        );
+        return ({labColor, listOfSimilarColors});
+    }
+}
+
+/**
+ * Set of constants for game configurations.
+ */
+const MainGameConstants = {
+    MAX_ROUNDS: 5,
+    DELTA_LIMIT: 40,
+    NUM_OF_SIMILAR_COLOR_CHOICES: 4,
 }
 
 
@@ -229,15 +297,18 @@ class RecallComponent extends React.Component {
  * Component to display Reward screen for a given game round.
  * @class
  * 
- * @member {number} props.score - Player's score for game round
+ * @member {number} props.currentRoundScore - Player's score for game round
+ * @member {number} props.totalScore - Total score so far
+ * @member {function()} props.onOkPressed 
  */
 class RewardComponent extends React.Component {
     render(){
         return (
             <SafeAreaView style={[styles.container, {justifyContent: 'space-around'}]}>
                 <Text style={styles.mainText}>Results</Text>
-                <Text style={styles.rewardText}>You scored {this.props.score}%!</Text>
-                <Button title={'OK'} style={styles.okButton}/>
+                <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}!</Text>
+                <Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>
+                <Button title={'OK'} style={styles.okButton} onPress={this.props.onOkPressed}/>
             </SafeAreaView>
         );
     }
