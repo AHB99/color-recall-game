@@ -41,7 +41,8 @@ export default class MainScreen extends React.Component {
 
         this.state = {
             gameMode: MainScreen.GameMode.RECALL,
-            currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),            
+            currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),
+            didWinRound: false,            
         }
         this.state.currentListOfColors = 
         ColorGenerationFunctions.generateListOfSimilarColors(this.state.currentLabColor, 4, 40);
@@ -54,8 +55,14 @@ export default class MainScreen extends React.Component {
             return <RememberComponent color={currentRgbString} />
         }
         else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
-            return <RecallComponent currentListOfColors={this.state.currentListOfColors}/>;
+            return <RecallComponent 
+            currentListOfColors={this.state.currentListOfColors}
+            onColorChoiceSelected={this._onColorChoiceSelectedInRecall}/>;
         }       
+    }
+
+    _onColorChoiceSelectedInRecall = (rgbColorBundle) => {
+        alert(rgbColorBundle.deltaE);
     }
 }
 
@@ -66,6 +73,8 @@ export default class MainScreen extends React.Component {
  * @member {string} props.color - The RGB string in format '#xxxxxx' to remember
  */
 class RememberComponent extends React.Component {
+
+
     render(){
         return (
             <View style={styles.container}>
@@ -82,11 +91,19 @@ class RememberComponent extends React.Component {
  * Component to display Recall screen for a given game round.
  * @class
  * @member {RgbColorBundle[]} props.currentListOfColors
+ * @member {function({RgbColorBundle})} onColorChoiceSelected
  */
 class RecallComponent extends React.Component {
     _renderColorBox = ({item}) => {
-        return (<ColorChoiceListItem color={item.rgbColor}/>);
+        return (<ColorChoiceListItem 
+            rgbColorBundle={item}
+            onColorChoiceSelected={this._colorChoiceSelected}/>);
     };
+
+    _colorChoiceSelected = (rgbColorBundle) => {
+        this.props.onColorChoiceSelected(rgbColorBundle);
+    }
+
 
     render(){
         return (
@@ -108,25 +125,25 @@ class RecallComponent extends React.Component {
 /**
  * Component for a single item in the list of color choices in Recall screen.
  * @class
- * @member {string} props.color - A rgb string in '#xxxxxx' format
+ * @member {RgbColorBundle} props.rgbColorBundle
+ * @member {function({RgbColorBundle})} onColorChoiceSelected
  */
 class ColorChoiceListItem extends React.Component {
 
-    _choicePressed = (param) => {
-        //alert('pressed now: ' + param);
-        
-    }
+    // _choicePressed = (param) => {
+    //     alert('pressed now: ' + JSON.stringify(param));    
+    // }
 
     render(){
         return(
             //Using Dimensions because '%' unit seems to block scrolling
             <TouchableWithoutFeedback 
-            onPress={this._choicePressed.bind(this,this.props.color)}
+            onPress={() => {this.props.onColorChoiceSelected(this.props.rgbColorBundle)}}
             disabled={false}>
                 <View 
                 style={
                     {height: (Dimensions.get('window').height*0.3), 
-                    backgroundColor: this.props.color, 
+                    backgroundColor: this.props.rgbColorBundle.rgbColor, 
                     borderRadius: 10, 
                     margin: 20}}
                 />
