@@ -40,7 +40,7 @@ export default class MainScreen extends React.Component {
         super(props);
 
         this.state = {
-            gameMode: MainScreen.GameMode.RECALL,
+            gameMode: MainScreen.GameMode.REMEMBER,
             currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),
             didWinRound: false,            
         }
@@ -52,7 +52,10 @@ export default class MainScreen extends React.Component {
     render(){
         if (this.state.gameMode === MainScreen.GameMode.REMEMBER){
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
-            return <RememberComponent color={currentRgbString} />
+            return <RememberComponent 
+            color={currentRgbString} 
+            initialTime={5}
+            onTimeExpired={this._onRememberTimeExpired}/>
         }
         else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
             return <RecallComponent 
@@ -64,6 +67,10 @@ export default class MainScreen extends React.Component {
     _onColorChoiceSelectedInRecall = (rgbColorBundle) => {
         alert(rgbColorBundle.deltaE);
     }
+
+    _onRememberTimeExpired = () => {
+        alert('remember time over');
+    }
 }
 
 
@@ -71,15 +78,45 @@ export default class MainScreen extends React.Component {
  * Component to display Remember screen for a given game round.
  * @class
  * @member {string} props.color - The RGB string in format '#xxxxxx' to remember
+ * @member {number} props.initialTime - Time delay to remember the color
+ * @member {function()} props.onTimeExpired - Callback when timer runs out
  */
 class RememberComponent extends React.Component {
 
+    constructor(props){
+        super(props);
+
+        this.state = {
+            timeLeft: this.props.initialTime,
+        }
+    }
+
+    componentDidMount(){
+        this.timer = setInterval(this._advanceTime, 1000);
+        console.log('mounted');
+    }
+
+    componentWillUnmount(){
+        clearInterval(this.timer);
+    }
+
+    _advanceTime = () => {
+        if (this.state.timeLeft <= 1){
+            clearInterval(this.timer);
+            this.props.onTimeExpired();
+        }
+        this.setState((state, props) => {
+            return { timeLeft: (state.timeLeft - 1) }
+        });
+        console.log('tick ' + this.state.timeLeft);
+
+    }
 
     render(){
         return (
             <View style={styles.container}>
                 <Text style={styles.mainText}>Remember this color!</Text>
-                <Text style={styles.timerText}>3 seconds left</Text>
+                <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
                 <View style={[styles.rectangle, {backgroundColor: this.props.color}]} />
             </View>
         );
