@@ -60,7 +60,9 @@ export default class MainScreen extends React.Component {
         else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
-            onColorChoiceSelected={this._onColorChoiceSelectedInRecall}/>;
+            onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
+            initialTime={5}
+            onTimeExpired={this._onRecallTimeExpired}/>;
         }       
     }
 
@@ -69,7 +71,11 @@ export default class MainScreen extends React.Component {
     }
 
     _onRememberTimeExpired = () => {
-        alert('remember time over');
+        this.setState({gameMode: MainScreen.GameMode.RECALL});
+    }
+
+    _onRecallTimeExpired = () => {
+        alert('Time up!');
     }
 }
 
@@ -80,6 +86,7 @@ export default class MainScreen extends React.Component {
  * @member {string} props.color - The RGB string in format '#xxxxxx' to remember
  * @member {number} props.initialTime - Time delay to remember the color
  * @member {function()} props.onTimeExpired - Callback when timer runs out
+ * @member {number} state.timeLeft - Current remaining time
  */
 class RememberComponent extends React.Component {
 
@@ -93,7 +100,6 @@ class RememberComponent extends React.Component {
 
     componentDidMount(){
         this.timer = setInterval(this._advanceTime, 1000);
-        console.log('mounted');
     }
 
     componentWillUnmount(){
@@ -102,14 +108,13 @@ class RememberComponent extends React.Component {
 
     _advanceTime = () => {
         if (this.state.timeLeft <= 1){
-            clearInterval(this.timer);
             this.props.onTimeExpired();
+            clearInterval(this.timer);
+            return;
         }
         this.setState((state, props) => {
             return { timeLeft: (state.timeLeft - 1) }
         });
-        console.log('tick ' + this.state.timeLeft);
-
     }
 
     render(){
@@ -128,9 +133,56 @@ class RememberComponent extends React.Component {
  * Component to display Recall screen for a given game round.
  * @class
  * @member {RgbColorBundle[]} props.currentListOfColors
- * @member {function({RgbColorBundle})} onColorChoiceSelected
+ * @member {function({RgbColorBundle})} props.onColorChoiceSelected
+ * @member {number} props.initialTime - Time delay to remember the color
+ * @member {function()} props.onTimeExpired - Callback when timer runs out
+ * @member {number} state.timeLeft - Current remaining time 
  */
 class RecallComponent extends React.Component {
+
+    constructor(props){
+        super(props);
+
+        this.state = {
+            timeLeft: this.props.initialTime,
+        }
+    }
+
+    componentDidMount(){
+        this.timer = setInterval(this._advanceTime, 1000);
+    }
+
+    componentWillUnmount(){
+        clearInterval(this.timer);
+    }
+
+    render(){
+        return (
+            <View style={styles.container}>
+                <Text style={styles.mainText}>Find the color!</Text>
+                <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
+                <FlatList 
+                    data={this.props.currentListOfColors}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={this._renderColorBox}
+                    style={styles.list}
+                />
+            </View>
+        );
+    }
+
+    _advanceTime = () => {
+        if (this.state.timeLeft <= 1){
+            this.props.onTimeExpired();
+            clearInterval(this.timer);
+            return;
+        }
+        this.setState((state, props) => {
+            return { timeLeft: (state.timeLeft - 1) }
+        });
+    }
+
+
     _renderColorBox = ({item}) => {
         return (<ColorChoiceListItem 
             rgbColorBundle={item}
@@ -142,20 +194,6 @@ class RecallComponent extends React.Component {
     }
 
 
-    render(){
-        return (
-            <View style={styles.container}>
-                <Text style={styles.mainText}>Find the color!</Text>
-                <Text style={styles.timerText}>3 seconds left</Text>
-                <FlatList 
-                    data={this.props.currentListOfColors}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={this._renderColorBox}
-                    style={styles.list}
-                />
-            </View>
-        );
-    }
 }
 
 
