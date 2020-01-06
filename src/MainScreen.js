@@ -36,20 +36,24 @@ export default class MainScreen extends React.Component {
         REWARD: Symbol("reward"),
     });
 
+    static DELTA_LIMIT = 40;
+
     constructor(props){
         super(props);
 
         this.state = {
             gameMode: MainScreen.GameMode.REMEMBER,
             currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),
-            didWinRound: false,            
+            currentRoundScore: 0,            
         }
         this.state.currentListOfColors = 
-        ColorGenerationFunctions.generateListOfSimilarColors(this.state.currentLabColor, 4, 40);
+        ColorGenerationFunctions.generateListOfSimilarColors(this.state.currentLabColor, 4, MainScreen.DELTA_LIMIT);
 
     }
 
     render(){
+        //DEBUG
+       // return null;
         if (this.state.gameMode === MainScreen.GameMode.REMEMBER){
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
@@ -64,10 +68,13 @@ export default class MainScreen extends React.Component {
             initialTime={5}
             onTimeExpired={this._onRecallTimeExpired}/>;
         }       
+        else if (this.state.gameMode === MainScreen.GameMode.REWARD){
+            return <RewardComponent score={this.state.currentRoundScore}/>
+        }
     }
 
     _onColorChoiceSelectedInRecall = (rgbColorBundle) => {
-        alert(rgbColorBundle.deltaE);
+        this._managePlayerRewardForRound(false, rgbColorBundle.deltaE);
     }
 
     _onRememberTimeExpired = () => {
@@ -75,7 +82,28 @@ export default class MainScreen extends React.Component {
     }
 
     _onRecallTimeExpired = () => {
-        alert('Time up!');
+        this._managePlayerRewardForRound(true);
+    }
+
+    _managePlayerRewardForRound(didTimeExpire, deltaE){
+        if (didTimeExpire){
+            this.setState({
+                gameMode: MainScreen.GameMode.REWARD,
+                currentRoundScore: 0
+            });
+            return;
+        }
+        if (deltaE === 0){
+            this.setState({
+                gameMode: MainScreen.GameMode.REWARD,
+                currentRoundScore: 100
+            });
+            return;
+        }
+        this.setState({
+            gameMode: MainScreen.GameMode.REWARD,
+            currentRoundScore: 100*(Math.abs(deltaE-MainScreen.DELTA_LIMIT)/MainScreen.DELTA_LIMIT),
+        });
     }
 }
 
@@ -119,11 +147,11 @@ class RememberComponent extends React.Component {
 
     render(){
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Text style={styles.mainText}>Remember this color!</Text>
                 <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
                 <View style={[styles.rectangle, {backgroundColor: this.props.color}]} />
-            </View>
+            </SafeAreaView>
         );
     }
 }
@@ -134,7 +162,7 @@ class RememberComponent extends React.Component {
  * @class
  * @member {RgbColorBundle[]} props.currentListOfColors
  * @member {function({RgbColorBundle})} props.onColorChoiceSelected
- * @member {number} props.initialTime - Time delay to remember the color
+ * @member {number} props.initialTime - Time delay to recall the color
  * @member {function()} props.onTimeExpired - Callback when timer runs out
  * @member {number} state.timeLeft - Current remaining time 
  */
@@ -158,7 +186,7 @@ class RecallComponent extends React.Component {
 
     render(){
         return (
-            <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
                 <Text style={styles.mainText}>Find the color!</Text>
                 <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
                 <FlatList 
@@ -167,7 +195,7 @@ class RecallComponent extends React.Component {
                     renderItem={this._renderColorBox}
                     style={styles.list}
                 />
-            </View>
+            </SafeAreaView>
         );
     }
 
@@ -198,16 +226,31 @@ class RecallComponent extends React.Component {
 
 
 /**
+ * Component to display Reward screen for a given game round.
+ * @class
+ * 
+ * @member {number} props.score - Player's score for game round
+ */
+class RewardComponent extends React.Component {
+    render(){
+        return (
+            <SafeAreaView style={[styles.container, {justifyContent: 'space-around'}]}>
+                <Text style={styles.mainText}>Results</Text>
+                <Text style={styles.rewardText}>You scored {this.props.score}%!</Text>
+                <Button title={'OK'} style={styles.okButton}/>
+            </SafeAreaView>
+        );
+    }
+}
+
+
+/**
  * Component for a single item in the list of color choices in Recall screen.
  * @class
  * @member {RgbColorBundle} props.rgbColorBundle
  * @member {function({RgbColorBundle})} onColorChoiceSelected
  */
 class ColorChoiceListItem extends React.Component {
-
-    // _choicePressed = (param) => {
-    //     alert('pressed now: ' + JSON.stringify(param));    
-    // }
 
     render(){
         return(
@@ -280,6 +323,11 @@ let styles = StyleSheet.create({
             fontFamily: 'serif',
             fontSize: 30,
             ...elem,
+        },  
+        rewardText: {
+            fontFamily: 'serif',
+            fontSize: 25,
+            ...elem,
         },   
         timerText: {
             fontFamily: 'serif',
@@ -291,6 +339,9 @@ let styles = StyleSheet.create({
             height: '50%', 
             flexGrow: 0
         },
+        okButton: {
+            ...elem,
+        }
 
     }
 )

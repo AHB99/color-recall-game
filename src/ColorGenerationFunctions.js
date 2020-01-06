@@ -8,7 +8,7 @@ import * as ColorConversionFunctions from './ColorConversionFunctions';
  * @param {number} numberOfColors 
  * @param {number} deltaLimit 
  * @returns {RgbColorBundle[]} - List of similar colors including 
- * originalLabColor's rgb equivalent with property 'deltaE' set to 'goal' 
+ * originalLabColor's rgb equivalent with property 'deltaE' set to 0 
  */
 export function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimit){
     //Final color from which we deviate
@@ -28,7 +28,7 @@ export function generateListOfSimilarColors(originalLabColor, numberOfColors, de
     listOfBColors = convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
 
     let finalList = listOfAColors.concat(listOfBColors);
-    let originalColor = new LabColorBundle(originalLabColor, 'goal');
+    let originalColor = new LabColorBundle(originalLabColor, 0);
 
     originalColor = convertLabColorBundleToRgbColorBundle(originalColor);
     finalList.push(originalColor);
