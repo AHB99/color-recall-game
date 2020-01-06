@@ -7,12 +7,11 @@ import * as ColorConversionFunctions from './ColorConversionFunctions';
  * @param {{L: number, a: number, b: number}} originalLabColor 
  * @param {number} numberOfColors 
  * @param {number} deltaLimit 
+ * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
  * @returns {RgbColorBundle[]} - List of similar colors including 
  * originalLabColor's rgb equivalent with property 'deltaE' set to 0 
  */
-export function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimit){
-    //Final color from which we deviate
-
+export function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimit, abRange){
     let numOfColsInASide = numberOfColors/2;
     let numOfColsInBSide = numberOfColors/2;
 
@@ -21,8 +20,8 @@ export function generateListOfSimilarColors(originalLabColor, numberOfColors, de
         (generateRandomInteger(0,2)===0) ? ++numOfColsInASide : ++numOfColsInBSide;
     }
 
-    let listOfAColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide);
-    let listOfBColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide);
+    let listOfAColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide, abRange);
+    let listOfBColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide, abRange);
 
     listOfAColors = convertListOfLabColorBundlesToRgbColorBundles(listOfAColors);
     listOfBColors = convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
@@ -60,9 +59,10 @@ export function convertLabColorToRgbString({L, a, b}){
  * @param {number} deltaLimit 
  * @param {boolean} isAVarying
  * @param {number} numberOfColors 
+ * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
  * @return {LabColorBundle[]}
  */
-function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, isAVarying, numberOfColors) {
+function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, isAVarying, numberOfColors, abRange) {
     let forwardColorComponent, backwardColorComponent;
 
     if (isAVarying){
@@ -76,10 +76,10 @@ function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, 
 
     let choosingForward;
     //Check validity
-    if (forwardColorComponent > 128){
+    if (forwardColorComponent > abRange.max){
         choosingForward = false;
     }
-    else if (backwardColorComponent < -128){
+    else if (backwardColorComponent < abRange.min){
         choosingForward = true;
     }
     //If both valid, choose randomly
@@ -120,16 +120,20 @@ function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, 
     return listOfColorBundles;
 }
 
-
-
-//Returns object with properties L=60, a, b.
-export function generateRandomLabColor(){
+/**
+ * 
+ * @param {{min: number, max: number}} lRange - Range of valid L values for Lab colors
+ * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
+ * @returns {{L: number, a: number, b: number}}
+ */
+export function generateRandomLabColor(lRange, abRange){
     return ({
-        L: 60,
-        a: generateRandomInteger(-128, 129),
-        b: generateRandomInteger(-128, 129)
+        L: generateRandomInteger(lRange.min, lRange.max + 1),
+        a: generateRandomInteger(abRange.min, abRange.max + 1),
+        b: generateRandomInteger(abRange.min, abRange.max + 1)
     });
 }
+
 
 //For unrelated/non-similar colors
 export function generateRandomListOfUnrelatedColors(numberOfColors){

@@ -45,20 +45,21 @@ export default class MainScreen extends React.Component {
     }
 
     render(){
-
         if (this.state.gameMode === MainScreen.GameMode.REMEMBER){
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
             color={currentRgbString} 
             initialTime={5}
-            onTimeExpired={this._onRememberTimeExpired} />
+            onTimeExpired={this._onRememberTimeExpired}
+            roundNumber={this.state.roundNumber} />
         }
         else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
             onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
             initialTime={5}
-            onTimeExpired={this._onRecallTimeExpired} />;
+            onTimeExpired={this._onRecallTimeExpired}
+            roundNumber={this.state.roundNumber} />;
         }       
         else if (this.state.gameMode === MainScreen.GameMode.REWARD){
             return <RewardComponent 
@@ -156,12 +157,18 @@ export default class MainScreen extends React.Component {
      * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}}
      */
     _getRandomLabColorAndListOfSimilarColors(){
-        let labColor = ColorGenerationFunctions.generateRandomLabColor();
+        let labColor = ColorGenerationFunctions.generateRandomLabColor(
+            MainGameConstants.VALID_LAB_L_RANGE,
+            MainGameConstants.VALID_LAB_AB_RANGE
+        );
         let listOfSimilarColors = ColorGenerationFunctions.generateListOfSimilarColors(
             labColor,
             MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES,
-            MainGameConstants.DELTA_LIMIT
+            MainGameConstants.DELTA_LIMIT,
+            MainGameConstants.VALID_LAB_AB_RANGE
         );
+        shuffle(listOfSimilarColors);
+        console.log(JSON.stringify(listOfSimilarColors));
         return ({labColor, listOfSimilarColors});
     }
 }
@@ -173,14 +180,24 @@ const MainGameConstants = {
     MAX_ROUNDS: 5,
     DELTA_LIMIT: 40,
     NUM_OF_SIMILAR_COLOR_CHOICES: 4,
+    VALID_LAB_L_RANGE: {
+        min: 40,
+        max: 80
+    },
+    VALID_LAB_AB_RANGE: {
+        min: -80,
+        max: 80
+    }
 }
 
 
 /**
  * Component to display Remember screen for a given game round.
  * @class
+ * 
  * @member {string} props.color - The RGB string in format '#xxxxxx' to remember
  * @member {number} props.initialTime - Time delay to remember the color
+ * @member {number} props.roundNumber
  * @member {function()} props.onTimeExpired - Callback when timer runs out
  * @member {number} state.timeLeft - Current remaining time
  */
@@ -216,6 +233,7 @@ class RememberComponent extends React.Component {
     render(){
         return (
             <SafeAreaView style={styles.container}>
+                <Text style={styles.roundNumberText}>Round {this.props.roundNumber}</Text>
                 <Text style={styles.mainText}>Remember this color!</Text>
                 <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
                 <View style={[styles.rectangle, {backgroundColor: this.props.color}]} />
@@ -228,9 +246,11 @@ class RememberComponent extends React.Component {
 /**
  * Component to display Recall screen for a given game round.
  * @class
+ * 
  * @member {RgbColorBundle[]} props.currentListOfColors
  * @member {function({RgbColorBundle})} props.onColorChoiceSelected
  * @member {number} props.initialTime - Time delay to recall the color
+ * @member {number} props.roundNumber
  * @member {function()} props.onTimeExpired - Callback when timer runs out
  * @member {number} state.timeLeft - Current remaining time 
  */
@@ -255,6 +275,7 @@ class RecallComponent extends React.Component {
     render(){
         return (
             <SafeAreaView style={styles.container}>
+                <Text style={styles.roundNumberText}>Round {this.props.roundNumber}</Text>
                 <Text style={styles.mainText}>Find the color!</Text>
                 <Text style={styles.timerText}>{this.state.timeLeft} seconds left</Text>
                 <FlatList 
@@ -304,7 +325,7 @@ class RecallComponent extends React.Component {
 class RewardComponent extends React.Component {
     render(){
         return (
-            <SafeAreaView style={[styles.container, {justifyContent: 'space-around'}]}>
+            <SafeAreaView style={styles.container}>
                 <Text style={styles.mainText}>Results</Text>
                 <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}!</Text>
                 <Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>
@@ -369,6 +390,22 @@ export class LabColorBundle {
     }
 }
 
+/**
+ * Shuffles array randomly, modifying in place.
+ * 
+ * @param {Array} arr An array containing the items.
+ */
+function shuffle(arr) {
+    let randomIndex, tempVal, currentIndex;
+
+    for (currentIndex = arr.length - 1; currentIndex > 0; currentIndex--) {
+        randomIndex = Math.floor(Math.random() * (currentIndex + 1));
+
+        tempVal = arr[currentIndex];
+        arr[currentIndex] = arr[randomIndex];
+        arr[randomIndex] = tempVal;
+    }
+}
 
 
 //---Styles---
@@ -377,10 +414,17 @@ const elem = {
     margin: 20
 }
 
+const mainText = {
+    fontFamily: 'serif',
+    fontSize: 30,
+    fontWeight: 'bold',
+    ...elem,
+}
+
 let styles = StyleSheet.create({
         container: {
             flex: 1,
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'center',
             backgroundColor: 'white'
         },
@@ -390,11 +434,11 @@ let styles = StyleSheet.create({
             borderRadius: 20,
             ...elem,
         },
-        mainText: {
-            fontFamily: 'serif',
-            fontSize: 30,
-            ...elem,
-        },  
+        mainText,  
+        roundNumberText: {
+            ...mainText,
+            fontWeight: 'normal',
+        },
         rewardText: {
             fontFamily: 'serif',
             fontSize: 25,
