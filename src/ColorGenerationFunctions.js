@@ -1,8 +1,15 @@
+import {LabColorBundle, RgbColorBundle} from './MainScreen';
+import * as ColorConversionFunctions from './ColorConversionFunctions';
 
-/*
-Params: Original Lab color, Number of color choices, furthest deviation from correct color
-Returns: Array of objects {rgbColor, deltaE}, where rgbColor is string
-*/
+/**
+ * Takes a base lab color and returns a balanced mix of similar colors.
+ * 
+ * @param {{L: number, a: number, b: number}} originalLabColor 
+ * @param {number} numberOfColors 
+ * @param {number} deltaLimit 
+ * @returns {RgbColorBundle[]} - List of similar colors including 
+ * originalLabColor's rgb equivalent with property 'deltaE' set to 'goal' 
+ */
 export function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimit){
     //Final color from which we deviate
 
@@ -14,43 +21,48 @@ export function generateListOfSimilarColors(originalLabColor, numberOfColors, de
         (generateRandomInteger(0,2)===0) ? ++numOfColsInASide : ++numOfColsInBSide;
     }
 
-    let listOfAColors = _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide);
-    let listOfBColors = _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide);
+    let listOfAColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide);
+    let listOfBColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide);
 
-    listOfAColors = _convertListOfLabColorBundlesToRgbColorBundles(listOfAColors);
-    listOfBColors = _convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
+    listOfAColors = convertListOfLabColorBundlesToRgbColorBundles(listOfAColors);
+    listOfBColors = convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
 
     let finalList = listOfAColors.concat(listOfBColors);
     let originalColor = new LabColorBundle(originalLabColor, 'goal');
 
-    originalColor = _convertLabColorBundleToRgbColorBundle(originalColor);
+    originalColor = convertLabColorBundleToRgbColorBundle(originalColor);
     finalList.push(originalColor);
     return finalList;
 }
 
-function _convertListOfLabColorBundlesToRgbColorBundles(listOfLabColors) {
-    return (listOfLabColors.map((color) => _convertLabColorBundleToRgbColorBundle(color)));
+function convertListOfLabColorBundlesToRgbColorBundles(listOfLabColors) {
+    return (listOfLabColors.map((color) => convertLabColorBundleToRgbColorBundle(color)));
 }
 
-function _convertLabColorBundleToRgbColorBundle(colorBundle){
-    let rgbValue = ColorConversionFunctions.labToRgb(
-        colorBundle.labColor.L,
-        colorBundle.labColor.a,
-        colorBundle.labColor.b
-    );
-    let rgbString = ('#' +
-        convertDecimalNumberTo2DigitHexString(rgbValue.r) + 
-        convertDecimalNumberTo2DigitHexString(rgbValue.g) + 
-        convertDecimalNumberTo2DigitHexString(rgbValue.b)
-    );
-    return new RgbColorBundle(rgbString, colorBundle.deltaE);
+function convertLabColorBundleToRgbColorBundle(labColorBundle){
+    let rgbString = convertLabColorToRgbString(labColorBundle.labColor);
+    return new RgbColorBundle(rgbString, labColorBundle.deltaE);
 }
 
-/*
-Params: Original color, furthest deviation, boolean whether 'a' varies, numOfCols required
-Returns: List of object {labColor, deltaE}
+export function convertLabColorToRgbString({L, a, b}){
+    let rgbColor = ColorConversionFunctions.labToRgb(L, a, b);
+    return ('#' +
+        convertDecimalNumberTo2DigitHexString(rgbColor.r) + 
+        convertDecimalNumberTo2DigitHexString(rgbColor.g) + 
+        convertDecimalNumberTo2DigitHexString(rgbColor.b)
+    );
+}
+
+/**
+ * Helper function to return a list of LabColorBundles given fixed parameters.
+ * 
+ * @param {{L: number, a: number, b: number}} originalLabColor 
+ * @param {number} deltaLimit 
+ * @param {boolean} isAVarying
+ * @param {number} numberOfColors 
+ * @return {LabColorBundle[]}
  */
-function _getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, isAVarying, numberOfColors) {
+function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, isAVarying, numberOfColors) {
     let forwardColorComponent, backwardColorComponent;
 
     if (isAVarying){

@@ -10,54 +10,105 @@ import * as ColorGenerationFunctions from './ColorGenerationFunctions';
 
 let testData;
 
-
-export default class MainScreen extends React.Component{
+/**
+ * Component displaying the screen for one full game.
+ * @class
+ * 
+ * @static {{Symbol}} GameMode
+ * 
+ * @member {GameMode} state.gameMode - Current game mode to display
+ * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
+ * @member {{L: number, a: number, b: number}} state.currentLabColor
+ */
+export default class MainScreen extends React.Component {
     //For title
     static navigationOptions = {
         title: 'Main',
     }
 
+    /**
+     * Enum of 3 Game Mode types, representing 3 different screens.
+     * @enum
+     */
+    static GameMode = Object.freeze({
+        REMEMBER: Symbol("remember"),
+        RECALL: Symbol("recall"),
+        REWARD: Symbol("reward"),
+    });
+
     constructor(props){
         super(props);
+
+        this.state = {
+            gameMode: MainScreen.GameMode.RECALL,
+            currentLabColor: ColorGenerationFunctions.generateRandomLabColor(),            
+        }
+        this.state.currentListOfColors = 
+        ColorGenerationFunctions.generateListOfSimilarColors(this.state.currentLabColor, 4, 40);
+
     }
 
-    //Accepts object and extracts 'item' property
+    render(){
+        if (this.state.gameMode === MainScreen.GameMode.REMEMBER){
+            let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
+            return <RememberComponent color={currentRgbString} />
+        }
+        else if (this.state.gameMode === MainScreen.GameMode.RECALL) {
+            return <RecallComponent currentListOfColors={this.state.currentListOfColors}/>;
+        }       
+    }
+}
+
+
+/**
+ * Component to display Remember screen for a given game round.
+ * @class
+ * @member {string} props.color - The RGB string in format '#xxxxxx' to remember
+ */
+class RememberComponent extends React.Component {
+    render(){
+        return (
+            <View style={styles.container}>
+                <Text style={styles.mainText}>Remember this color!</Text>
+                <Text style={styles.timerText}>3 seconds left</Text>
+                <View style={[styles.rectangle, {backgroundColor: this.props.color}]} />
+            </View>
+        );
+    }
+}
+
+
+/**
+ * Component to display Recall screen for a given game round.
+ * @class
+ * @member {RgbColorBundle[]} props.currentListOfColors
+ */
+class RecallComponent extends React.Component {
     _renderColorBox = ({item}) => {
         return (<ColorChoiceListItem color={item.rgbColor}/>);
     };
 
-
     render(){
-        testData = ColorGenerationFunctions.generateListOfSimilarColors(
-            ColorGenerationFunctions.generateRandomLabColor(), 6, 30);
-
-        let rememberComponent = (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.mainText}>Remember this color!</Text>
-            <Text style={styles.timerText}>3 seconds left</Text>
-            <View style={styles.rectangle} />
-        </SafeAreaView>);
-
         return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.mainText}>Find the color!</Text>
-            <Text style={styles.timerText}>3 seconds left</Text>
-            <FlatList 
-                data={testData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={this._renderColorBox}
-                style={{width: '80%', height: '50%', flexGrow: 0}}
-            />
-           
-        </SafeAreaView>
+            <View style={styles.container}>
+                <Text style={styles.mainText}>Find the color!</Text>
+                <Text style={styles.timerText}>3 seconds left</Text>
+                <FlatList 
+                    data={this.props.currentListOfColors}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={this._renderColorBox}
+                    style={styles.list}
+                />
+            </View>
         );
-
-        
     }
 }
 
-/*
-props: color
+
+/**
+ * Component for a single item in the list of color choices in Recall screen.
+ * @class
+ * @member {string} props.color - A rgb string in '#xxxxxx' format
  */
 class ColorChoiceListItem extends React.Component {
 
@@ -85,6 +136,12 @@ class ColorChoiceListItem extends React.Component {
 
 }
 
+/**
+ * Data class for rgb color with deltaE for a given game round.
+ * 
+ * @member {string} rgbColor - String in '#xxxxxx' format
+ * @member {number} deltaE - Distance from correct color choice
+ */
 export class RgbColorBundle {
     constructor(rgbColor, deltaE){
         this.rgbColor = rgbColor;
@@ -93,12 +150,20 @@ export class RgbColorBundle {
 
 }
 
+/**
+ * Data class for lab color with deltaE for a given game round.
+ * 
+ * @member {{L: number, a: number, b: number}} labColor - Color in Lab space
+ * @member {number} deltaE - Distance from correct color choice
+ */
 export class LabColorBundle {
     constructor(labColor, deltaE){
         this.labColor = labColor;
         this.deltaE = deltaE;
     }
 }
+
+
 
 //---Styles---
 
@@ -116,7 +181,6 @@ let styles = StyleSheet.create({
         rectangle: {
             width: '80%',
             height: '40%',
-            backgroundColor: '#ff0000',
             borderRadius: 20,
             ...elem,
         },
@@ -129,6 +193,11 @@ let styles = StyleSheet.create({
             fontFamily: 'serif',
             fontSize: 20,
             ...elem,
+        },
+        list: {
+            width: '80%', 
+            height: '50%', 
+            flexGrow: 0
         },
 
     }

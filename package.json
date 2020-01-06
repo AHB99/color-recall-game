@@ -31,7 +31,6 @@
     "react-test-renderer": "16.9.0"
   },
   "jest": {
-    "preset": "react-native",
-    "transformIgnorePatterns": ["node_modules/(?!react-native|native-base|react-navigation|react-native-fabric|@react-native-community|react-native-gesture-handler|@react-navigation)"]
+    "preset": "react-native"
   }
 }
