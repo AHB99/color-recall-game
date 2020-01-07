@@ -1,4 +1,5 @@
-import {LabColorBundle, RgbColorBundle} from './MainScreen';
+'use strict'
+import {LabColorBundle, RgbColorBundle} from './GameUtils';
 import * as ColorConversionFunctions from './ColorConversionFunctions';
 
 /**
