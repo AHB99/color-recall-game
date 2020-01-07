@@ -15,29 +15,43 @@ import * as GameStyles from './GameStyles';
  * 
  * @member {number} props.currentRoundScore - Player's score for game round
  * @member {number} props.totalScore - Total score so far
+ * @member {number} props.roundNumber
  * @member {function()} props.onOkPressed 
  */
 export default class RewardComponent extends React.Component {
     render(){
         return (
             <SafeAreaView style={styles.container}>
-                <Text style={styles.mainText}>Results</Text>
-                <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}!</Text>
-                <Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>
-                <Button title={'OK'} style={styles.okButton} onPress={this.props.onOkPressed}/>
+                <View style={styles.headerContainer}>
+                    <Text style={styles.roundNumberText}>Round {this.props.roundNumber}</Text>
+                    <Text style={styles.mainText}>Results</Text>
+                </View>
+                <View style={styles.container}>
+                    <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}!</Text>
+                    <Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>
+                </View>       
+                <View style={styles.footerContainer}>
+                    <TouchableHighlight style={styles.touchableButton} onPress={this.props.onOkPressed}>
+                        <Text style={styles.touchableButtonText}>OK</Text>
+                    </TouchableHighlight>
+                </View>
             </SafeAreaView>
         );
     }
 }
+
 
 /**
  * Stylesheet
  */
 let styles = StyleSheet.create({
     container: GameStyles.container,
+    headerContainer: GameStyles.headerContainer,
+    footerContainer: GameStyles.footerContainer,
+    bodyContainer: GameStyles.bodyContainer,
     mainText: GameStyles.mainText,
     rewardText: GameStyles.rewardText,
-    okButton: {
-        ...GameStyles.marginElement
-    },
+    roundNumberText: GameStyles.roundNumberText,
+    touchableButton: GameStyles.touchableButton,
+    touchableButtonText: GameStyles.touchableButtonText
 });

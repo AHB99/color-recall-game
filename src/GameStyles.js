@@ -48,7 +48,35 @@ export const timerText =  {
 };
 
 export const list = {
-    width: '80%', 
-
+    width: '80%',
 }
 
+export const headerContainer = {
+    ...container,
+    flex: 0,
+};
+
+export const footerContainer = {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 0,
+}
+
+export const bodyContainer = {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+}
+
+export const touchableButton = {
+    backgroundColor: '#2196F3',
+    borderRadius: 2,
+    padding: 10,
+    margin: 20,
+}
+
+export const touchableButtonText = {
+    color: 'white',
+    fontSize: 20,
+}

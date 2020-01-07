@@ -66,7 +66,8 @@ export default class GameComponent extends React.Component {
             return <RewardComponent 
             currentRoundScore={this.state.currentRoundScore}
             totalScore={this.state.totalScore}
-            onOkPressed={this._onOkPressedInReward} />
+            onOkPressed={this._onOkPressedInReward}
+            roundNumber={this.state.roundNumber} />
         }
     }
 
