@@ -16,6 +16,7 @@ import RecallComponent from './RecallComponent';
  * 
  * @static {{Symbol}} GameMode
  * 
+ * @member {number} roundTime - Duration of Recall and Remember time period
  * @member {GameMode} state.gameMode - Current game mode to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
  * @member {{L: number, a: number, b: number}} state.currentLabColor
@@ -42,7 +43,7 @@ export default class GameComponent extends React.Component {
     constructor(props){
         super(props);
         this.state = this._generateInitialState();
-
+        this.roundTime = 5;
     }
 
     render(){
@@ -50,7 +51,7 @@ export default class GameComponent extends React.Component {
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
             color={currentRgbString} 
-            initialTime={5}
+            initialTime={this.roundTime}
             onTimeExpired={this._onRememberTimeExpired}
             roundNumber={this.state.roundNumber} />
         }
@@ -58,16 +59,19 @@ export default class GameComponent extends React.Component {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
             onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
-            initialTime={5}
+            initialTime={this.roundTime}
             onTimeExpired={this._onRecallTimeExpired}
             roundNumber={this.state.roundNumber} />;
         }       
         else if (this.state.gameMode === GameComponent.GameMode.REWARD){
+            let isLastRound = (this.state.roundNumber === MainGameConstants.MAX_ROUNDS);
             return <RewardComponent 
             currentRoundScore={this.state.currentRoundScore}
             totalScore={this.state.totalScore}
-            onOkPressed={this._onOkPressedInReward}
-            roundNumber={this.state.roundNumber} />
+            onAdvancePressed={this._onAdvancePressedInReward}
+            onGoHomePressed={this._onGoHomePressedInReward}
+            roundNumber={this.state.roundNumber}
+            isLastRound={isLastRound} />
         }
     }
 
@@ -84,9 +88,9 @@ export default class GameComponent extends React.Component {
     }
 
     /**
-     * Callback for Reward screen OK button to advance round number and handle game over.
+     * Callback for Reward screen advance button to advance round number and handle game over.
      */
-    _onOkPressedInReward = () => {
+    _onAdvancePressedInReward = () => {
         if (this.state.roundNumber !== MainGameConstants.MAX_ROUNDS) {     
             let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();  
             this.setState((state, props) => {
@@ -102,6 +106,10 @@ export default class GameComponent extends React.Component {
             this._restartGame();
         }
 
+    }
+
+    _onGoHomePressedInReward = () => {
+        this.props.navigation.goBack();
     }
 
     /**

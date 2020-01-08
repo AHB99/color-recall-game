@@ -56,7 +56,7 @@ function HomeButtonComponent(props){
         <ButtonComponent 
             text={props.text}
             onPress={props.onPress}
-            backgroundColor={'#29ff84'}
+            backgroundColor={GameStyles.gameButtonColor}
             fontSize={25}
             borderRadius={25}/>
     );

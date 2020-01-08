@@ -82,3 +82,5 @@ export const mainHomeTitle = {
     letterSpacing: 15,
     textAlign: 'center',
 }
+
+export const gameButtonColor = '#29ff84';
