@@ -24,7 +24,7 @@ import RecallComponent from './RecallComponent';
  * @member {number} state.roundNumber 
  */
 export default class GameComponent extends React.Component {
-    //For title
+    //For toolbar title
     static navigationOptions = {
         title: '',
     }

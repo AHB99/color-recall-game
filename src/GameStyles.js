@@ -70,8 +70,15 @@ export const bodyContainer = {
 }
 
 export const touchableButton = {
-    borderRadius: 2,
     padding: 10,
     margin: 20,
 }
 
+export const mainHomeTitle = {
+    ...mainText,
+    fontFamily: 'monospace',
+    fontWeight: '800',
+    fontSize: 60,
+    letterSpacing: 15,
+    textAlign: 'center',
+}
