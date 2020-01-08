@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ColorConversionFunctions from './ColorConversionFunctions';
 import * as ColorGenerationFunctions from './ColorGenerationFunctions';
 import * as GameStyles from './GameStyles';
+import ButtonComponent  from './ButtonComponent';
 
 /**
  * Component to display Reward screen for a given game round.
@@ -31,14 +32,13 @@ export default class RewardComponent extends React.Component {
                     <Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>
                 </View>       
                 <View style={styles.footerContainer}>
-                    <TouchableHighlight style={styles.touchableButton} onPress={this.props.onOkPressed}>
-                        <Text style={styles.touchableButtonText}>OK</Text>
-                    </TouchableHighlight>
+                    <ButtonComponent text={'OK'} onPress={this.props.onOkPressed} />
                 </View>
             </SafeAreaView>
         );
     }
 }
+
 
 
 /**
@@ -52,6 +52,5 @@ let styles = StyleSheet.create({
     mainText: GameStyles.mainText,
     rewardText: GameStyles.rewardText,
     roundNumberText: GameStyles.roundNumberText,
-    touchableButton: GameStyles.touchableButton,
-    touchableButtonText: GameStyles.touchableButtonText
+
 });

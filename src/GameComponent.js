@@ -26,7 +26,7 @@ import RecallComponent from './RecallComponent';
 export default class GameComponent extends React.Component {
     //For title
     static navigationOptions = {
-        title: 'Main',
+        title: '',
     }
 
     /**
