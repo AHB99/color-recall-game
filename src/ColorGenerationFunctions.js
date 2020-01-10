@@ -3,16 +3,97 @@ import {LabColorBundle, RgbColorBundle} from './GameUtils';
 import * as ColorConversionFunctions from './ColorConversionFunctions';
 
 /**
- * Takes a base lab color and returns a balanced mix of similar colors.
+ * Generates a base lab color and a balanced mix of fair similar rgb colors.
+ * 
+ * This function will repeatedly check (to a limit) that the generated colors 
+ * deviate far enough from the correct answer to be fair.
+ * 
+ * @param {number} numberOfColors 
+ * @param {number} deltaLimit 
+ * @param {{min: number, max: number}} lRange - Range of valid a/b values for Lab colors
+ * @param {{min: number, max: number}} abRange - Range of valid l values for base Lab color
+ * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}} - 
+ * Object containing correct Lab color and list of similar rgb color bundles
+ * including the correct answer with property 'deltaE' set to 0 
+ */
+export function generateRandomLabColorAndFairListOfSimilarRgbColors(numberOfColors, deltaLimit, lRange, abRange){
+    let i = 0;
+    let isTooSimilar = true;
+    let correctLabColor, listOfSimilarLabColors;
+
+    while ((i < FAIRNESS_CHECK_ITERATION_LIMIT) && isTooSimilar ){
+        isTooSimilar = false;
+        let candidateResult = generateRandomLabColorAndListOfSimilarLabColors(numberOfColors,deltaLimit,lRange,abRange);
+        correctLabColor = candidateResult.labColor;
+        listOfSimilarLabColors = candidateResult.listOfSimilarColors;
+        if (isListOfLabColorsTooSimilarToCorrectAnswer(correctLabColor, listOfSimilarLabColors)){
+            console.log('From ' + JSON.stringify(correctLabColor) + 'Rejected ' + JSON.stringify(listOfSimilarLabColors));
+            isTooSimilar = true;
+        }
+        ++i;
+    }
+
+    let listOfSimilarRgbColors = convertListOfLabColorBundlesToRgbColorBundles(listOfSimilarLabColors);
+    return {labColor: correctLabColor, listOfSimilarColors: listOfSimilarRgbColors};
+}
+
+/**
+ * Limit constant for function generateRandomLabColorAndFairListOfSimilarRgbColors().
+ * 
+ * Defines the maximum number of times to re-generate colors till a fair set is found.
+ * 
+ * @constant 
+ */
+const FAIRNESS_CHECK_ITERATION_LIMIT = 10;
+
+/**
+ * Helper function that generates a base lab color and a balanced mix of similar lab colors.
+ * 
+ * @param {number} numberOfColors 
+ * @param {number} deltaLimit 
+ * @param {{min: number, max: number}} lRange - Range of valid a/b values for Lab colors
+ * @param {{min: number, max: number}} abRange - Range of valid l values for base Lab color
+ * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: LabColorBundle[]}} - 
+ * Object containing correct Lab color and list of similar lab color bundles
+ * including the correct answer with property 'deltaE' set to 0 
+ */
+function generateRandomLabColorAndListOfSimilarLabColors(numberOfColors, deltaLimit, lRange, abRange){
+    let correctLabColor = generateRandomLabColor(lRange,abRange);
+    let labList =
+    generateListOfSimilarLabColorBundles(correctLabColor,numberOfColors,deltaLimit,abRange);
+    return {labColor: correctLabColor, listOfSimilarColors: labList};
+}
+
+/**
+ * Checks if any color in list has deltaE too small from correct answer.
+ * 
+ * @param {{L: number, a: number, b: number}} correctLabColor 
+ * @param {LabColorBundle[]} listOfLabColors 
+ * @return {boolean}
+ */
+function isListOfLabColorsTooSimilarToCorrectAnswer(correctLabColor, listOfLabColors){
+    for (let color of listOfLabColors){
+        //If distance is < 3, reject. 3 is considered to be too small to notice a difference.
+        //Skip if deltaE == 0, indicating correct lab color
+        if (color.deltaE !== 0 && 
+            (Math.floor(ColorConversionFunctions.deltaE(correctLabColor,color.labColor)) !== color.deltaE)){
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Helper function that takes a base lab color and returns a balanced mix of similar colors.
  * 
  * @param {{L: number, a: number, b: number}} originalLabColor 
  * @param {number} numberOfColors 
  * @param {number} deltaLimit 
  * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
- * @returns {RgbColorBundle[]} - List of similar colors including 
- * originalLabColor's rgb equivalent with property 'deltaE' set to 0 
+ * @returns {LabColorBundle[]} - List of similar colors including 
+ * originalLabColor with property 'deltaE' set to 0 
  */
-export function generateListOfSimilarColors(originalLabColor, numberOfColors, deltaLimit, abRange){
+function generateListOfSimilarLabColorBundles(originalLabColor, numberOfColors, deltaLimit, abRange){
     let numOfColsInASide = numberOfColors/2;
     let numOfColsInBSide = numberOfColors/2;
 
@@ -24,13 +105,9 @@ export function generateListOfSimilarColors(originalLabColor, numberOfColors, de
     let listOfAColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, true, numOfColsInASide, abRange);
     let listOfBColors = getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, false, numOfColsInBSide, abRange);
 
-    listOfAColors = convertListOfLabColorBundlesToRgbColorBundles(listOfAColors);
-    listOfBColors = convertListOfLabColorBundlesToRgbColorBundles(listOfBColors);
-
     let finalList = listOfAColors.concat(listOfBColors);
-    let originalColor = new LabColorBundle(originalLabColor, 0);
 
-    originalColor = convertLabColorBundleToRgbColorBundle(originalColor);
+    let originalColor = new LabColorBundle(originalLabColor, 0);
     finalList.push(originalColor);
     return finalList;
 }

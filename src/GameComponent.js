@@ -164,19 +164,18 @@ export default class GameComponent extends React.Component {
     /**
      * Helper function to get random Lab color and list of colors similar to it.
      * 
+     * The similar colors have been checked for fairness, so they deviate far enough from correct answer.
+     * 
      * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}}
      */
     _getRandomLabColorAndListOfSimilarColors(){
-        let labColor = ColorGenerationFunctions.generateRandomLabColor(
-            MainGameConstants.VALID_LAB_L_RANGE,
-            MainGameConstants.VALID_LAB_AB_RANGE
-        );
-        let listOfSimilarColors = ColorGenerationFunctions.generateListOfSimilarColors(
-            labColor,
+        let { labColor, listOfSimilarColors } = 
+        ColorGenerationFunctions.generateRandomLabColorAndFairListOfSimilarRgbColors(
             MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES,
             MainGameConstants.DELTA_LIMIT,
-            MainGameConstants.VALID_LAB_AB_RANGE
-        );
+            MainGameConstants.VALID_LAB_L_RANGE,
+            MainGameConstants.VALID_LAB_AB_RANGE);
+
         GameUtils.shuffle(listOfSimilarColors);
         console.log(JSON.stringify(listOfSimilarColors));
         return ({labColor, listOfSimilarColors});
