@@ -41,5 +41,8 @@ export default class GameModeComponent extends React.Component {
 }
 
 let styles = StyleSheet.create({
-    bodyContainer: GameStyles.bodyContainer,
+    bodyContainer: {
+        ...GameStyles.bodyContainer,
+        backgroundColor: 'white',
+    }
 });

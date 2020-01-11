@@ -3,7 +3,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 
 import * as ColorGenerationFunctions from './ColorGenerationFunctions';
-import { MainGameConstants, RgbColorBundle } from './GameUtils';
+import { MainGameConstants, RgbColorBundle, GameMode } from './GameUtils';
 import * as GameUtils from './GameUtils';
 import RememberComponent from './RememberComponent'; 
 import RewardComponent from './RewardComponent'; 
@@ -16,6 +16,7 @@ import RecallComponent from './RecallComponent';
  * 
  * @static {{Symbol}} GameScreen
  * 
+ * @member {GameMode} props.navigation.state.params.mode - Current game mode
  * @member {number} roundTime - Duration of Recall and Remember time period
  * @member {GameScreen} state.gameScreen - Current game screen to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
@@ -81,7 +82,7 @@ export default class GameComponent extends React.Component {
     }
 
     _onRememberTimeExpired = () => {
-        this.setState({gameMode: GameComponent.GameScreen.RECALL});
+        this.setState({gameScreen: GameComponent.GameScreen.RECALL});
     }
 
     _onRecallTimeExpired = () => {
@@ -93,13 +94,13 @@ export default class GameComponent extends React.Component {
      */
     _onAdvancePressedInReward = () => {
         if (this.state.roundNumber !== MainGameConstants.MAX_ROUNDS) {     
-            let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();  
+            let newColorAndList = this._getRandomLabColorAndListOfColors();  
             this.setState((state, props) => {
                 return ({
                     roundNumber: state.roundNumber + 1,
-                    gameMode: GameComponent.GameScreen.REMEMBER,
+                    gameScreen: GameComponent.GameScreen.REMEMBER,
                     currentLabColor: newColorAndList.labColor,
-                    currentListOfColors: newColorAndList.listOfSimilarColors
+                    currentListOfColors: newColorAndList.listOfColors
                 });
             });
         }
@@ -110,7 +111,7 @@ export default class GameComponent extends React.Component {
     }
 
     _onGoHomePressedInReward = () => {
-        this.props.navigation.goBack();
+        this.props.navigation.navigate('Home');
     }
 
     /**
@@ -137,7 +138,7 @@ export default class GameComponent extends React.Component {
             return ({
                 currentRoundScore: roundScore,
                 totalScore: state.totalScore + roundScore,
-                gameMode: GameComponent.GameScreen.REWARD
+                gameScreen: GameComponent.GameScreen.REWARD
             });
         });
     }
@@ -150,7 +151,7 @@ export default class GameComponent extends React.Component {
      * Helper function to get state object with all default properties, for constructor and restart.
      */
     _generateInitialState(){
-        let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();
+        let newColorAndList = this._getRandomLabColorAndListOfColors();
 
         return ({
             gameScreen: GameComponent.GameScreen.REMEMBER,
@@ -158,18 +159,28 @@ export default class GameComponent extends React.Component {
             currentRoundScore: 0,
             totalScore: 0,
             roundNumber: 1, 
-            currentListOfColors: newColorAndList.listOfSimilarColors
+            currentListOfColors: newColorAndList.listOfColors
         });
     }
 
     /**
-     * Helper function to get random Lab color and list of colors similar to it.
+     * Helper function to get base Lab color and list of colors, depending on Game Mode.
      * 
-     * The similar colors have been checked for fairness, so they deviate far enough from correct answer.
-     * 
-     * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}}
+     * @returns {{labColor: {L: number, a: number, b: number}, listOfColors: RgbColorBundle[]}}
      */
-    _getRandomLabColorAndListOfSimilarColors(){
+    _getRandomLabColorAndListOfColors() {
+        let currentGameMode = this.props.navigation.getParam('mode');
+        if (currentGameMode === GameMode.ACCURACY) {
+            console.log('accuracy');
+            return this._getRandomLabColorAndListOfSimilarRgbColors();
+        }
+        else if (currentGameMode === GameMode.SPEED) {
+            console.log('speed');
+            return this._getRandomLabColorAndListOfUnrelatedRgbColors();
+        }
+    }
+
+    _getRandomLabColorAndListOfSimilarRgbColors(){
         let { labColor, listOfSimilarColors } = 
         ColorGenerationFunctions.generateRandomLabColorAndFairListOfSimilarRgbColors(
             MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES,
@@ -179,8 +190,19 @@ export default class GameComponent extends React.Component {
 
         GameUtils.shuffle(listOfSimilarColors);
         console.log(JSON.stringify(listOfSimilarColors));
-        return ({labColor, listOfSimilarColors});
+        return ({labColor: labColor, listOfColors: listOfSimilarColors});
     }
+
+    _getRandomLabColorAndListOfUnrelatedRgbColors(){
+        let { labColor, listOfUnrelatedColors } = 
+        ColorGenerationFunctions.generateRandomLabColorAndListOfUnrelatedRgbColorBundles(
+            MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES);
+
+        GameUtils.shuffle(listOfUnrelatedColors);
+        console.log(JSON.stringify(listOfUnrelatedColors));
+        return ({labColor: labColor, listOfColors: listOfUnrelatedColors});
+    }
+    
 }
 
 /**

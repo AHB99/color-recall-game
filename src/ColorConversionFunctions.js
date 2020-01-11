@@ -193,7 +193,7 @@ function xyzToRgb(X, Y, Z){
 }
 
 function keepRgbInRange(component){
-    component = Math.floor(component);
+    component = Math.round(component);
     if (component < 0){
         return 0;
     }

@@ -123,11 +123,7 @@ function convertLabColorBundleToRgbColorBundle(labColorBundle){
 
 export function convertLabColorToRgbString({L, a, b}){
     let rgbColor = ColorConversionFunctions.labToRgb(L, a, b);
-    return ('#' +
-        convertDecimalNumberTo2DigitHexString(rgbColor.r) + 
-        convertDecimalNumberTo2DigitHexString(rgbColor.g) + 
-        convertDecimalNumberTo2DigitHexString(rgbColor.b)
-    );
+    return (convertRgbColorObjectToRgbString(rgbColor));
 }
 
 /**
@@ -199,7 +195,6 @@ function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, 
 }
 
 /**
- * 
  * @param {{min: number, max: number}} lRange - Range of valid L values for Lab colors
  * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
  * @returns {{L: number, a: number, b: number}}
@@ -212,23 +207,77 @@ export function generateRandomLabColor(lRange, abRange){
     });
 }
 
+/**
+ * Generates a base lab color and a random list of unique rgb color bundles.
+ * 
+ * @param {number} numberOfColors 
+ * @returns {{labColor: {L: number, a: number, b: number}, listOfUnrelatedColors: RgbColorBundle[]}} - 
+ * Object containing correct Lab color and list of random rgb color bundles with 'deltaE' set to -1 and
+ * including the correct answer with property 'deltaE' set to 0
+ */
+export function generateRandomLabColorAndListOfUnrelatedRgbColorBundles(numberOfColors){
+    let baseRgbColorObject = generateRandomRgbColorObject();
+    let baseLabColor = ColorConversionFunctions.rgbToLab(baseRgbColorObject.r, baseRgbColorObject.g, baseRgbColorObject.b);
 
-//For unrelated/non-similar colors
-export function generateRandomListOfUnrelatedColors(numberOfColors){
+    let baseRgbColorString = convertRgbColorObjectToRgbString(baseRgbColorObject);
+    let listOfUnrelatedRgbColorStrings = generateRandomListOfUnrelatedRgbColorStrings(numberOfColors, baseRgbColorString);
+    //Create list of bundles with deltaE set to -1.
+    let listOfUnrelatedRgbColorBundles = listOfUnrelatedRgbColorStrings.map((col) => new RgbColorBundle(col, -1));
+    //Add the base color
+    listOfUnrelatedRgbColorBundles.push(new RgbColorBundle(baseRgbColorString, 0));
+
+    return {labColor: baseLabColor, listOfUnrelatedColors: listOfUnrelatedRgbColorBundles};
+}
+
+/**
+ * Helper function to generate list of unique random rgb strings, different than base color.
+ * 
+ * @param {number} numberOfColors 
+ * @param {string} baseColor - Original rgb string, to ensure no duplicate generated
+ * @returns {string[]} - List of rgb strings that are all unique
+ */
+function generateRandomListOfUnrelatedRgbColorStrings(numberOfColors, baseColor){
     let colorsList = [];
+
     for (let i = 0; i < numberOfColors; ++i){    
-        colorsList.push(generateRandomRgbColor());
+        let newColor = generateRandomRgbColor();
+        let regenerationCounter = 0;
+        //Repeatedly regenerate color if it matches the base or an existing color, to a limit
+        while ((baseColor === newColor || colorsList.includes(newColor)) && regenerationCounter < 9999){
+            newColor = generateRandomRgbColor();
+            ++regenerationCounter;
+        }
+        colorsList.push(newColor);
     }
     return colorsList;
 }
 
-//Returns object of property 'color' with value: '#' followed by hex color code
-export function generateRandomRgbColor(){
+export function generateRandomRgbColor() {
+    let randomRgbColorObject = generateRandomRgbColorObject(); 
+    return convertRgbColorObjectToRgbString(randomRgbColorObject);
+}
+
+function convertRgbColorObjectToRgbString(rgbColor){
     let rgbString = '#';
-    for (let i = 0; i < 3; ++i){
-        rgbString += convertDecimalNumberTo2DigitHexString(generateRandomInteger(0,256));
-    }
-    return {color: rgbString};
+
+    rgbString += convertDecimalNumberTo2DigitHexString(rgbColor.r);
+    rgbString += convertDecimalNumberTo2DigitHexString(rgbColor.g);
+    rgbString += convertDecimalNumberTo2DigitHexString(rgbColor.b);
+
+    return rgbString;
+}
+
+/**
+ * Helper function to generate random rgb object.
+ * 
+ * @returns {{r: number, g: number, b: number}}
+ */
+function generateRandomRgbColorObject() {
+    return ({
+        r: generateRandomInteger(0,256),
+        g: generateRandomInteger(0,256),
+        b: generateRandomInteger(0,256)
+    });
 }
 
 //Returns string
