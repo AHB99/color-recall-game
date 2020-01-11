@@ -36,7 +36,7 @@ export default class HomeComponent extends React.Component {
     }
     
     _onStartGamePressed = () => {
-        this.props.navigation.navigate('Game');
+        this.props.navigation.navigate('GameMode');
     };
 
     _onGithubLinkPressed = () => {

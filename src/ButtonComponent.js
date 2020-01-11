@@ -41,7 +41,7 @@ ButtonComponent.defaultProps = {
     textColor: 'white',
     backgroundColor: '#2196F3',
     fontSize: 20,
-    borderRadius: 2,
+    borderRadius: 6,
 }
 
 /**

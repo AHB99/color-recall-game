@@ -14,10 +14,10 @@ import RecallComponent from './RecallComponent';
  * Component displaying the screen for one full game.
  * @class
  * 
- * @static {{Symbol}} GameMode
+ * @static {{Symbol}} GameScreen
  * 
  * @member {number} roundTime - Duration of Recall and Remember time period
- * @member {GameMode} state.gameMode - Current game mode to display
+ * @member {GameScreen} state.gameScreen - Current game screen to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
  * @member {{L: number, a: number, b: number}} state.currentLabColor
  * @member {number} state.currentRoundScore 
@@ -31,10 +31,10 @@ export default class GameComponent extends React.Component {
     }
 
     /**
-     * Enum of 3 Game Mode types, representing 3 different screens.
+     * Enum of 3 Game Screen types, representing 3 different screens.
      * @enum
      */
-    static GameMode = Object.freeze({
+    static GameScreen = Object.freeze({
         REMEMBER: Symbol("remember"),
         RECALL: Symbol("recall"),
         REWARD: Symbol("reward"),
@@ -47,7 +47,7 @@ export default class GameComponent extends React.Component {
     }
 
     render(){
-        if (this.state.gameMode === GameComponent.GameMode.REMEMBER){
+        if (this.state.gameScreen === GameComponent.GameScreen.REMEMBER){
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
             color={currentRgbString} 
@@ -55,7 +55,7 @@ export default class GameComponent extends React.Component {
             onTimeExpired={this._onRememberTimeExpired}
             roundNumber={this.state.roundNumber} />
         }
-        else if (this.state.gameMode === GameComponent.GameMode.RECALL) {
+        else if (this.state.gameScreen === GameComponent.GameScreen.RECALL) {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
             onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
@@ -63,7 +63,7 @@ export default class GameComponent extends React.Component {
             onTimeExpired={this._onRecallTimeExpired}
             roundNumber={this.state.roundNumber} />;
         }       
-        else if (this.state.gameMode === GameComponent.GameMode.REWARD){
+        else if (this.state.gameScreen === GameComponent.GameScreen.REWARD){
             let isLastRound = (this.state.roundNumber === MainGameConstants.MAX_ROUNDS);
             return <RewardComponent 
             currentRoundScore={this.state.currentRoundScore}
@@ -81,7 +81,7 @@ export default class GameComponent extends React.Component {
     }
 
     _onRememberTimeExpired = () => {
-        this.setState({gameMode: GameComponent.GameMode.RECALL});
+        this.setState({gameMode: GameComponent.GameScreen.RECALL});
     }
 
     _onRecallTimeExpired = () => {
@@ -97,7 +97,7 @@ export default class GameComponent extends React.Component {
             this.setState((state, props) => {
                 return ({
                     roundNumber: state.roundNumber + 1,
-                    gameMode: GameComponent.GameMode.REMEMBER,
+                    gameMode: GameComponent.GameScreen.REMEMBER,
                     currentLabColor: newColorAndList.labColor,
                     currentListOfColors: newColorAndList.listOfSimilarColors
                 });
@@ -137,7 +137,7 @@ export default class GameComponent extends React.Component {
             return ({
                 currentRoundScore: roundScore,
                 totalScore: state.totalScore + roundScore,
-                gameMode: GameComponent.GameMode.REWARD
+                gameMode: GameComponent.GameScreen.REWARD
             });
         });
     }
@@ -153,7 +153,7 @@ export default class GameComponent extends React.Component {
         let newColorAndList = this._getRandomLabColorAndListOfSimilarColors();
 
         return ({
-            gameMode: GameComponent.GameMode.REMEMBER,
+            gameScreen: GameComponent.GameScreen.REMEMBER,
             currentLabColor: newColorAndList.labColor,
             currentRoundScore: 0,
             totalScore: 0,

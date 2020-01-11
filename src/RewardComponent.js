@@ -56,8 +56,12 @@ export default class RewardComponent extends React.Component {
         );
     }
 
+    /**
+     * Helper function to find correct message given total game score as a percentage.
+     * 
+     * @param {number} pointsPercentage - Integer between 0-100
+     */
     _getCongratulatoryMessage(pointsPercentage) {
-        console.log(pointsPercentage);
         if (pointsPercentage >= 100){
             return "Perfect!";
         }

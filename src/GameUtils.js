@@ -27,6 +27,15 @@ export const MainGameConstants = {
     }
 }
 
+/**
+ * Enum of possible game modes.
+ * @enum
+ */
+export const GameMode = Object.freeze({
+    ACCURACY: Symbol("accuracy"),
+    SPEED: Symbol("speed"),
+});
+
 
 /**
  * Data class for rgb color with deltaE for a given game round.
