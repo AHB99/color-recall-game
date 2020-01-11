@@ -71,7 +71,8 @@ export default class GameComponent extends React.Component {
             onAdvancePressed={this._onAdvancePressedInReward}
             onGoHomePressed={this._onGoHomePressedInReward}
             roundNumber={this.state.roundNumber}
-            isLastRound={isLastRound} />
+            isLastRound={isLastRound}
+            maxScore={100*MainGameConstants.MAX_ROUNDS} />
         }
     }
 
