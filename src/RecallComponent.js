@@ -14,7 +14,8 @@ import * as GameStyles from './GameStyles';
  * @class
  * 
  * @member {RgbColorBundle[]} props.currentListOfColors
- * @member {function({RgbColorBundle})} props.onColorChoiceSelected
+ * @member {function({RgbColorBundle}, {number})} props.onColorChoiceSelected - Callback to send selected
+ * color bundle and time remaining
  * @member {number} props.initialTime - Time delay to recall the color
  * @member {number} props.roundNumber
  * @member {function()} props.onTimeExpired - Callback when timer runs out
@@ -73,7 +74,7 @@ export default class RecallComponent extends React.Component {
     };
 
     _colorChoiceSelected = (rgbColorBundle) => {
-        this.props.onColorChoiceSelected(rgbColorBundle);
+        this.props.onColorChoiceSelected(rgbColorBundle, this.state.timeLeft);
     }
 
 

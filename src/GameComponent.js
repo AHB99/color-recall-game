@@ -77,8 +77,8 @@ export default class GameComponent extends React.Component {
         }
     }
 
-    _onColorChoiceSelectedInRecall = (rgbColorBundle) => {
-        this._managePlayerRewardForRound(false, rgbColorBundle);
+    _onColorChoiceSelectedInRecall = (rgbColorBundle, timeLeft) => {
+        this._managePlayerRewardForRound(rgbColorBundle, timeLeft);
     }
 
     _onRememberTimeExpired = () => {
@@ -86,7 +86,7 @@ export default class GameComponent extends React.Component {
     }
 
     _onRecallTimeExpired = () => {
-        this._managePlayerRewardForRound(true);
+        this._managePlayerRewardForRound(null, 0);
     }
 
     /**
@@ -117,22 +117,19 @@ export default class GameComponent extends React.Component {
     /**
      * Updates the current and total score, and advances player to Reward screen for current round.
      * 
-     * @param {boolean} didTimeExpire 
-     * @param {number} rgbColorBundle - Color bundle selected by user
+     * @param {RgbColorBundle} selectedRgbColorBundle - Color bundle selected by user
+     * @param {number} timeLeft - Remaining time in round
      */
-    _managePlayerRewardForRound(didTimeExpire, rgbColorBundle){
-        let roundScore = 0;
-
-        if (didTimeExpire){
-            roundScore = 0;
+    _managePlayerRewardForRound(selectedRgbColorBundle, timeLeft){      
+        let currentGameMode = this.props.navigation.getParam('mode');
+        let roundScore;
+        if (currentGameMode === GameMode.ACCURACY) {
+            roundScore = this._getRoundScoreForAccuracyMode(selectedRgbColorBundle,timeLeft);
         }
-        else if (rgbColorBundle.isCorrect){
-            roundScore = 100;
+        else if (currentGameMode === GameMode.SPEED) {
+            roundScore = this._getRoundScoreForSpeedMode(selectedRgbColorBundle,timeLeft);
         }
-        else {
-            roundScore = 100*(
-                    Math.abs( rgbColorBundle.deltaE - MainGameConstants.DELTA_LIMIT ) / MainGameConstants.DELTA_LIMIT );
-        }
+        roundScore = Math.floor(roundScore);
 
         this.setState((state, props) => {
             return ({
@@ -141,6 +138,45 @@ export default class GameComponent extends React.Component {
                 gameScreen: GameComponent.GameScreen.REWARD
             });
         });
+    }
+
+    /**
+     * @param {RgbColorBundle} selectedRgbColorBundle - Color bundle selected by user
+     * @param {number} timeLeft - Remaining time in round
+     * @returns {number} - Score for round
+     */
+    _getRoundScoreForAccuracyMode(selectedRgbColorBundle, timeLeft){
+        let roundScore = 0;
+        if (timeLeft === 0){
+            roundScore = 0;
+        }
+        else if (selectedRgbColorBundle.isCorrect){
+            roundScore = 100;
+        }
+        else {
+            roundScore = 100*(
+                    Math.abs( selectedRgbColorBundle.deltaE - MainGameConstants.DELTA_LIMIT ) / MainGameConstants.DELTA_LIMIT );
+        }
+        return roundScore;
+    }
+
+    /**
+     * Returns score, 0 if wrong, else proportionate to time taken.
+     * 
+     * @param {RgbColorBundle} selectedRgbColorBundle - Color bundle selected by user
+     * @param {number} timeLeft - Remaining time in round
+     * @returns {number} - Score for round
+     */
+    _getRoundScoreForSpeedMode(selectedRgbColorBundle, timeLeft){
+        let roundScore = 0;
+
+        if (!selectedRgbColorBundle.isCorrect){
+            roundScore = 0;
+        }
+        else {
+            roundScore = 100*(timeLeft / this.roundTime );
+        }
+        return roundScore;
     }
 
     _restartGame() {
