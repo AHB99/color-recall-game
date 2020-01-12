@@ -78,7 +78,7 @@ export default class GameComponent extends React.Component {
     }
 
     _onColorChoiceSelectedInRecall = (rgbColorBundle) => {
-        this._managePlayerRewardForRound(false, rgbColorBundle.deltaE);
+        this._managePlayerRewardForRound(false, rgbColorBundle);
     }
 
     _onRememberTimeExpired = () => {
@@ -118,20 +118,20 @@ export default class GameComponent extends React.Component {
      * Updates the current and total score, and advances player to Reward screen for current round.
      * 
      * @param {boolean} didTimeExpire 
-     * @param {number} deltaE - Distance between chosen and correct colors for current game round.
+     * @param {number} rgbColorBundle - Color bundle selected by user
      */
-    _managePlayerRewardForRound(didTimeExpire, deltaE){
+    _managePlayerRewardForRound(didTimeExpire, rgbColorBundle){
         let roundScore = 0;
 
         if (didTimeExpire){
             roundScore = 0;
         }
-        else if (deltaE === 0){
+        else if (rgbColorBundle.isCorrect){
             roundScore = 100;
         }
         else {
             roundScore = 100*(
-                    Math.abs( deltaE - MainGameConstants.DELTA_LIMIT ) / MainGameConstants.DELTA_LIMIT );
+                    Math.abs( rgbColorBundle.deltaE - MainGameConstants.DELTA_LIMIT ) / MainGameConstants.DELTA_LIMIT );
         }
 
         this.setState((state, props) => {
@@ -180,6 +180,9 @@ export default class GameComponent extends React.Component {
         }
     }
 
+    /**
+     * Helper function for Accuracy Game Mode.
+     */
     _getRandomLabColorAndListOfSimilarRgbColors(){
         let { labColor, listOfSimilarColors } = 
         ColorGenerationFunctions.generateRandomLabColorAndFairListOfSimilarRgbColors(
@@ -193,6 +196,9 @@ export default class GameComponent extends React.Component {
         return ({labColor: labColor, listOfColors: listOfSimilarColors});
     }
 
+    /**
+     * Helper function for Speed Game Mode.
+     */
     _getRandomLabColorAndListOfUnrelatedRgbColors(){
         let { labColor, listOfUnrelatedColors } = 
         ColorGenerationFunctions.generateRandomLabColorAndListOfUnrelatedRgbColorBundles(

@@ -14,7 +14,7 @@ import * as ColorConversionFunctions from './ColorConversionFunctions';
  * @param {{min: number, max: number}} abRange - Range of valid l values for base Lab color
  * @returns {{labColor: {L: number, a: number, b: number}, listOfSimilarColors: RgbColorBundle[]}} - 
  * Object containing correct Lab color and list of similar rgb color bundles
- * including the correct answer with property 'deltaE' set to 0 
+ * including the correct answer
  */
 export function generateRandomLabColorAndFairListOfSimilarRgbColors(numberOfColors, deltaLimit, lRange, abRange){
     let i = 0;
@@ -91,7 +91,7 @@ function isListOfLabColorsTooSimilarToCorrectAnswer(correctLabColor, listOfLabCo
  * @param {number} deltaLimit 
  * @param {{min: number, max: number}} abRange - Range of valid a/b values for Lab colors
  * @returns {LabColorBundle[]} - List of similar colors including 
- * originalLabColor with property 'deltaE' set to 0 
+ * originalLabColor 
  */
 function generateListOfSimilarLabColorBundles(originalLabColor, numberOfColors, deltaLimit, abRange){
     let numOfColsInASide = numberOfColors/2;
@@ -107,7 +107,7 @@ function generateListOfSimilarLabColorBundles(originalLabColor, numberOfColors, 
 
     let finalList = listOfAColors.concat(listOfBColors);
 
-    let originalColor = new LabColorBundle(originalLabColor, 0);
+    let originalColor = new LabColorBundle(originalLabColor, 0, true);
     finalList.push(originalColor);
     return finalList;
 }
@@ -118,7 +118,7 @@ function convertListOfLabColorBundlesToRgbColorBundles(listOfLabColors) {
 
 function convertLabColorBundleToRgbColorBundle(labColorBundle){
     let rgbString = convertLabColorToRgbString(labColorBundle.labColor);
-    return new RgbColorBundle(rgbString, labColorBundle.deltaE);
+    return new RgbColorBundle(rgbString, labColorBundle.deltaE, labColorBundle.isCorrect);
 }
 
 export function convertLabColorToRgbString({L, a, b}){
@@ -177,7 +177,7 @@ function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, 
                     a: originalLabColor.a + currentDeltaE,
                     b: originalLabColor.b
                 }
-            , Math.abs(currentDeltaE));
+            , Math.abs(currentDeltaE), false);
         }
         else{
             currentColorBundle = new LabColorBundle({
@@ -185,7 +185,7 @@ function getListOfSimilarLabColorBundlesPerABComp(originalLabColor, deltaLimit, 
                     a: originalLabColor.a,
                     b: originalLabColor.b + currentDeltaE
                 }
-            , Math.abs(currentDeltaE));
+            , Math.abs(currentDeltaE), false);
         }
         listOfColorBundles.push(currentColorBundle);  
 
@@ -212,8 +212,7 @@ export function generateRandomLabColor(lRange, abRange){
  * 
  * @param {number} numberOfColors 
  * @returns {{labColor: {L: number, a: number, b: number}, listOfUnrelatedColors: RgbColorBundle[]}} - 
- * Object containing correct Lab color and list of random rgb color bundles with 'deltaE' set to -1 and
- * including the correct answer with property 'deltaE' set to 0
+ * Object containing correct Lab color and list of random rgb color bundles, including the correct answer
  */
 export function generateRandomLabColorAndListOfUnrelatedRgbColorBundles(numberOfColors){
     let baseRgbColorObject = generateRandomRgbColorObject();
@@ -221,10 +220,10 @@ export function generateRandomLabColorAndListOfUnrelatedRgbColorBundles(numberOf
 
     let baseRgbColorString = convertRgbColorObjectToRgbString(baseRgbColorObject);
     let listOfUnrelatedRgbColorStrings = generateRandomListOfUnrelatedRgbColorStrings(numberOfColors, baseRgbColorString);
-    //Create list of bundles with deltaE set to -1.
-    let listOfUnrelatedRgbColorBundles = listOfUnrelatedRgbColorStrings.map((col) => new RgbColorBundle(col, -1));
-    //Add the base color
-    listOfUnrelatedRgbColorBundles.push(new RgbColorBundle(baseRgbColorString, 0));
+    //Convert list of colors to bundles
+    let listOfUnrelatedRgbColorBundles = listOfUnrelatedRgbColorStrings.map((col) => new RgbColorBundle(col, null, false));
+    //Add the correct base color
+    listOfUnrelatedRgbColorBundles.push(new RgbColorBundle(baseRgbColorString, null, true));
 
     return {labColor: baseLabColor, listOfUnrelatedColors: listOfUnrelatedRgbColorBundles};
 }
@@ -280,7 +279,11 @@ function generateRandomRgbColorObject() {
     });
 }
 
-//Returns string
+/**
+ * 
+ * @param {number} decNum - Integer between 0-255
+ * @returns {string} - 2-digit hex string, padded with 0 if needed
+ */
 export function convertDecimalNumberTo2DigitHexString(decNum){
     let hexVal = decNum.toString(16);
     if (hexVal.length == 1){
@@ -289,7 +292,12 @@ export function convertDecimalNumberTo2DigitHexString(decNum){
     return hexVal;
 }
 
-//Returns random number between min (inclusive) max (exclusive)
+/**
+ * 
+ * @param {number} min -Inclusive
+ * @param {number} max - Exclusive
+ * @returns {number}
+ */
 export function generateRandomInteger(min, max) {
     return Math.floor(Math.random() * (max - min) ) + min;
 }

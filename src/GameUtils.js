@@ -42,11 +42,13 @@ export const GameMode = Object.freeze({
  * 
  * @member {string} rgbColor - String in '#xxxxxx' format
  * @member {number} deltaE - Distance from correct color choice
+ * @member {boolean} isCorrect - Whether color is the target correct color
  */
 export class RgbColorBundle {
-    constructor(rgbColor, deltaE){
+    constructor(rgbColor, deltaE, isCorrect){
         this.rgbColor = rgbColor;
         this.deltaE = deltaE;
+        this.isCorrect = isCorrect;
     }
 
 }
@@ -56,11 +58,13 @@ export class RgbColorBundle {
  * 
  * @member {{L: number, a: number, b: number}} labColor - Color in Lab space
  * @member {number} deltaE - Distance from correct color choice
+ * @member {boolean} isCorrect - Whether color is the target correct color
  */
 export class LabColorBundle {
-    constructor(labColor, deltaE){
+    constructor(labColor, deltaE, isCorrect){
         this.labColor = labColor;
         this.deltaE = deltaE;
+        this.isCorrect = isCorrect;
     }
 }
 
