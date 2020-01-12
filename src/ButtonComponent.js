@@ -24,7 +24,7 @@ export default class ButtonComponent extends React.Component{
     render(){
         return (
             <TouchableHighlight 
-            style={[buttonStylesheet.touchableButton, 
+            style={[styles.touchableButton, 
                 {backgroundColor: this.props.backgroundColor,
                 borderRadius: this.props.borderRadius}]} 
             onPress={this.props.onPress}>
@@ -47,7 +47,7 @@ ButtonComponent.defaultProps = {
 /**
  * Stylesheet for ButtonComponent
  */
-let buttonStylesheet = StyleSheet.create({
+let styles = StyleSheet.create({
     touchableButton: GameStyles.touchableButton, 
     touchableButtonText: GameStyles.touchableButtonText 
 });
