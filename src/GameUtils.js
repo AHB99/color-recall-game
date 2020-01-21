@@ -24,7 +24,16 @@ export const MainGameConstants = {
     VALID_LAB_AB_RANGE: {
         min: -80,
         max: 80
-    }
+    },
+    MAX_HIGH_SCORES: 10,
+}
+
+/**
+ * Set of constants for AsyncStorage keys
+ */
+export const DbKeys = {
+    ACCURACY_HIGH_SCORE_LIST: 'ACCURACY_HIGH_SCORE_LIST',
+    SPEED_HIGH_SCORE_LIST: 'SPEED_HIGH_SCORE_LIST',
 }
 
 /**
@@ -73,9 +82,9 @@ export class LabColorBundle {
 
 
 /**
- * Shuffles array randomly, modifying in place.
+ * Shuffles array randomly, modifying it.
  * 
- * @param {Array} arr An array containing the items.
+ * @param {Array} arr - An array containing the items.
  */
 export function shuffle(arr) {
     let randomIndex, tempVal, currentIndex;
@@ -87,4 +96,13 @@ export function shuffle(arr) {
         arr[currentIndex] = arr[randomIndex];
         arr[randomIndex] = tempVal;
     }
+}
+
+/**
+ * Sorts numeric array in descending order, modifying it.
+ * 
+ * @param {Array} arr - An Array containing numbers.
+ */
+export function sortNumericDescending(arr) {
+    arr.sort((a,b) => { return (b-a);} );
 }

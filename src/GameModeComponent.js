@@ -25,8 +25,8 @@ export default class GameModeComponent extends React.Component {
     /**
      * @constant
      */
-    static ACCURACY_DESC = `Recall the color from a list of similar colors. The closer you are, the higher your score.`;
-    static SPEED_DESC = `Recall the color from a list of random colors. The faster you are, the higher your score.`;
+    static ACCURACY_DESC = `Recall a color from a list of similar colors. The closer you are, the higher your score.`;
+    static SPEED_DESC = `Recall a color from a list of random colors. The faster you are, the higher your score.`;
 
     render(){
         return (
@@ -53,7 +53,7 @@ export default class GameModeComponent extends React.Component {
      * @param {GameMode} gameMode - Enum value of GameUtils.GameMode
      */
     _navigateToGame(gameMode) {
-        this.props.navigation.navigate('Game', {mode: gameMode});
+        this.props.navigation.navigate('Game', {mode: gameMode, difficulty: 1});
     }
 
 }

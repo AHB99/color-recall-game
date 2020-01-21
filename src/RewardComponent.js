@@ -82,11 +82,13 @@ export default class RewardComponent extends React.Component {
 
     _getTotalScoreComponent() {
         if (this.props.isLastRound){
+            let finalPercentage = Math.floor(100*(this.props.totalScore/this.props.maxScore));
             return (
                 <View style={styles.container}>
                     <Text style={styles.rewardText}>Final score: {this.props.totalScore}/{this.props.maxScore}</Text>
+                    <Text style={styles.rewardText}>{finalPercentage}%</Text>
                     <Text style={styles.rewardText}>
-                        {this._getCongratulatoryMessage(Math.floor(100*(this.props.totalScore/this.props.maxScore)))}
+                        {this._getCongratulatoryMessage(finalPercentage)}
                     </Text>
                 </View>
             );

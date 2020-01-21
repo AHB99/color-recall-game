@@ -8,6 +8,7 @@ import * as GameUtils from './GameUtils';
 import RememberComponent from './RememberComponent'; 
 import RewardComponent from './RewardComponent'; 
 import RecallComponent from './RecallComponent'; 
+import * as DbRepo from './DbRepo';
 
 
 /**
@@ -17,6 +18,7 @@ import RecallComponent from './RecallComponent';
  * @static {{Symbol}} GameScreen
  * 
  * @member {GameMode} props.navigation.state.params.mode - Current game mode
+ * @member {GameMode} props.navigation.state.params.difficulty - Current game difficulty level
  * @member {number} roundTime - Duration of Recall and Remember time period
  * @member {GameScreen} state.gameScreen - Current game screen to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
@@ -24,6 +26,7 @@ import RecallComponent from './RecallComponent';
  * @member {number} state.currentRoundScore 
  * @member {number} state.totalScore 
  * @member {number} state.roundNumber 
+ * @member {[{difficulty: number, scoreList: [number]}]} state.highScoresOfGameMode
  */
 export default class GameComponent extends React.Component {
     //For toolbar title
@@ -44,7 +47,7 @@ export default class GameComponent extends React.Component {
     constructor(props){
         super(props);
         this.state = this._generateInitialState();
-        this.roundTime = 5;
+        this.roundTime = 2;
     }
 
     render(){
@@ -75,6 +78,10 @@ export default class GameComponent extends React.Component {
             isLastRound={isLastRound}
             maxScore={100*MainGameConstants.MAX_ROUNDS} />
         }
+    }
+
+    componentDidMount(){
+        this._loadHighScoreListOfGameModeFromDb();
     }
 
     _onColorChoiceSelectedInRecall = (rgbColorBundle, timeLeft) => {
@@ -121,7 +128,7 @@ export default class GameComponent extends React.Component {
      * @param {number} timeLeft - Remaining time in round
      */
     _managePlayerRewardForRound(selectedRgbColorBundle, timeLeft){      
-        let currentGameMode = this.props.navigation.getParam('mode');
+        let currentGameMode = this._getCurrentGameMode();
         let roundScore;
         if (currentGameMode === GameMode.ACCURACY) {
             roundScore = this._getRoundScoreForAccuracyMode(selectedRgbColorBundle,timeLeft);
@@ -138,6 +145,9 @@ export default class GameComponent extends React.Component {
                 gameScreen: GameComponent.GameScreen.REWARD
             });
         });
+        if (this.state.roundNumber === MainGameConstants.MAX_ROUNDS){
+            this._updateHighScores();
+        }
     }
 
     /**
@@ -181,6 +191,7 @@ export default class GameComponent extends React.Component {
 
     _restartGame() {
         this.setState(this._generateInitialState());
+        this._loadHighScoreListOfGameModeFromDb();
     }
 
     /**
@@ -195,7 +206,8 @@ export default class GameComponent extends React.Component {
             currentRoundScore: 0,
             totalScore: 0,
             roundNumber: 1, 
-            currentListOfColors: newColorAndList.listOfColors
+            currentListOfColors: newColorAndList.listOfColors,
+            highScoresOfGameMode: [],
         });
     }
 
@@ -205,7 +217,7 @@ export default class GameComponent extends React.Component {
      * @returns {{labColor: {L: number, a: number, b: number}, listOfColors: RgbColorBundle[]}}
      */
     _getRandomLabColorAndListOfColors() {
-        let currentGameMode = this.props.navigation.getParam('mode');
+        let currentGameMode = this._getCurrentGameMode();
         if (currentGameMode === GameMode.ACCURACY) {
             console.log('accuracy');
             return this._getRandomLabColorAndListOfSimilarRgbColors();
@@ -245,11 +257,66 @@ export default class GameComponent extends React.Component {
         return ({labColor: labColor, listOfColors: listOfUnrelatedColors});
     }
     
+    /**
+     * Helper function to get game mode
+     * @returns {GameMode} 
+     */
+    _getCurrentGameMode(){
+        return this.props.navigation.getParam('mode');
+    }
+
+    /**
+     * Helper function to get game difficulty
+     * @returns {number} 
+     */
+    _getCurrentGameDifficulty(){
+        return this.props.navigation.getParam('difficulty');
+    }
+
+    /**
+     * Helper function to update state with relevant high score list from Db.
+     */
+    _loadHighScoreListOfGameModeFromDb(){
+        //Retrieve relevant high score list and update state with it
+        DbRepo.getHighScoreListPerGameMode(this._getCurrentGameMode())
+        .then((highScoreList) => {
+            this.setState({highScoresOfGameMode: highScoreList})
+        });
+    }
+
+    _updateHighScores(){
+        this.setState((state, props) => {
+
+            //Find index of difficulty list for current difficulty
+            const currentDifficultyListIndex = state.highScoresOfGameMode.findIndex(
+                (diffList) => {return (diffList.difficulty === this._getCurrentGameDifficulty());}
+            );
+            
+            let currentDifficultyList;
+
+            //Find difficulty list using index
+            if (currentDifficultyListIndex !== -1){
+                currentDifficultyList = state.highScoresOfGameMode[currentDifficultyListIndex];
+            }
+            else {
+                //If no list yet for current difficulty, create one and add to old state list.
+                currentDifficultyList = {difficulty: this._getCurrentGameDifficulty(), scoresList: []};
+                state.highScoresOfGameMode.push(currentDifficultyList);
+            }
+
+            //Update difficulty list with current score
+            if (currentDifficultyList.scoresList.length < MainGameConstants.MAX_HIGH_SCORES){
+                currentDifficultyList.scoresList.push(Math.floor(100*(state.totalScore/(100*MainGameConstants.MAX_ROUNDS))));
+                GameUtils.sortNumericDescending(currentDifficultyList.scoresList);
+            }
+
+            //Save to Db
+            DbRepo.saveHighScoreListPerGameMode(this._getCurrentGameMode(), state.highScoresOfGameMode);
+            
+            return ({
+                highScoresOfGameMode: state.highScoresOfGameMode,
+            });
+        });
+    }
 }
 
-/**
- * Stylesheet
- */
-let styles = StyleSheet.create({
-
-});
