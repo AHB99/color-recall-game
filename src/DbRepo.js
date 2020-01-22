@@ -1,3 +1,4 @@
+'use strict'
 import AsyncStorage from '@react-native-community/async-storage';
 import { GameMode, DbKeys } from './GameUtils';
 

@@ -18,6 +18,7 @@ import * as GameStyles from './GameStyles';
  * @member {string} props.backgroundColor - Button's background color. Default: '#2196F3'
  * @member {number} props.fontSize - Button's text font size. Default: 20
  * @member {number} props.borderRadius - Button's rounded edge radius. Default: 2
+ * @member {number} props.margin - Default: 20
  * @member {function()} props.onPress
  */
 export default class ButtonComponent extends React.Component{
@@ -26,7 +27,8 @@ export default class ButtonComponent extends React.Component{
             <TouchableHighlight 
             style={[styles.touchableButton, 
                 {backgroundColor: this.props.backgroundColor,
-                borderRadius: this.props.borderRadius}]} 
+                borderRadius: this.props.borderRadius,
+                margin: this.props.margin}]} 
             onPress={this.props.onPress}>
                 <Text 
                 style={{color: this.props.textColor, fontSize: this.props.fontSize}}>
@@ -42,6 +44,7 @@ ButtonComponent.defaultProps = {
     backgroundColor: '#2196F3',
     fontSize: 20,
     borderRadius: 6,
+    margin: 20,
 }
 
 /**

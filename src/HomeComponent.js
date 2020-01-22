@@ -28,6 +28,7 @@ export default class HomeComponent extends React.Component {
                 </View>
                 <View style={styles.bodyContainer}>
                     <HomeButtonComponent text={'Start Game'} onPress={this._onStartGamePressed}/>
+                    <HomeButtonComponent text={'High Scores'} onPress={this._onHighScoresPressed}/>
                     <HomeButtonComponent text={'Github Link'} onPress={this._onGithubLinkPressed}/>
 
                 </View>
@@ -38,6 +39,10 @@ export default class HomeComponent extends React.Component {
     _onStartGamePressed = () => {
         this.props.navigation.navigate('GameMode');
     };
+
+    _onHighScoresPressed = () => {
+        this.props.navigation.navigate('HighScore');
+    }
 
     _onGithubLinkPressed = () => {
         Linking.openURL('https://github.com/AHB99').catch((err) => console.error('An error occurred', err));
@@ -58,7 +63,8 @@ function HomeButtonComponent(props){
             onPress={props.onPress}
             backgroundColor={GameStyles.gameButtonColor}
             fontSize={25}
-            borderRadius={25}/>
+            borderRadius={25}
+            margin={10}/>
     );
 }
 
@@ -67,5 +73,5 @@ let styles = StyleSheet.create({
     container: GameStyles.container,
     headerContainer: GameStyles.headerContainer,
     bodyContainer: GameStyles.bodyContainer,
-    footerContainer: GameStyles.footerContainer,
+    
 });
