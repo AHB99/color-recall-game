@@ -26,7 +26,7 @@ import * as DbRepo from './DbRepo';
  * @member {number} state.currentRoundScore 
  * @member {number} state.totalScore 
  * @member {number} state.roundNumber 
- * @member {[{difficulty: number, scoreList: [number]}]} state.highScoresOfGameMode
+ * @member {[{difficulty: number, scoresList: [number]}]} state.highScoresOfGameMode
  */
 export default class GameComponent extends React.Component {
     //For toolbar title
@@ -180,7 +180,10 @@ export default class GameComponent extends React.Component {
     _getRoundScoreForSpeedMode(selectedRgbColorBundle, timeLeft){
         let roundScore = 0;
 
-        if (!selectedRgbColorBundle.isCorrect){
+        if (timeLeft === 0){
+            roundScore = 0;
+        }
+        else if (!selectedRgbColorBundle.isCorrect){
             roundScore = 0;
         }
         else {

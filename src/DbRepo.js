@@ -4,7 +4,8 @@ import { GameMode, DbKeys } from './GameUtils';
 
 /** 
  * @param {GameMode} gameMode 
- * @returns {Promise} - A Promise containing the relevant high score list or empty list if not found
+ * @returns {Promise} - A Promise containing the relevant high score list or empty list if not found.
+ * Promised data is of type {[{difficulty: number, scoresList: [number]}]}
  */
 export async function getHighScoreListPerGameMode(gameMode){
     if (gameMode === GameMode.ACCURACY){
