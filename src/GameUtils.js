@@ -16,7 +16,7 @@ import * as GameStyles from './GameStyles';
 export const MainGameConstants = {
     MAX_ROUNDS: 5,
     DELTA_LIMIT: 40,
-    NUM_OF_SIMILAR_COLOR_CHOICES: 4,
+    ROUND_TIME: 3,
     VALID_LAB_L_RANGE: {
         min: 40,
         max: 80
@@ -26,7 +26,7 @@ export const MainGameConstants = {
         max: 80
     },
     MAX_HIGH_SCORES: 10,
-    UNLOCK_DIFFICULTY_SCORE_THRESHOLD: 95,
+    UNLOCK_DIFFICULTY_SCORE_THRESHOLD: 50,
 }
 
 /**

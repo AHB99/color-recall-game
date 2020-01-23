@@ -68,7 +68,8 @@ export default class GameModeComponent extends React.Component {
             console.log(this._getMaxDifficultyForCurrentGameMode());
             return (
                 <ChooseDifficultyComponent selectedGameMode={this.state.selectedGameMode}
-                maxDifficulty={this._getMaxDifficultyForCurrentGameMode()}/>
+                maxDifficulty={this._getMaxDifficultyForCurrentGameMode()}
+                onStartGamePressed={this._onStartGamePressedInDifficultyScreen}/>
             );
         }
         else {
@@ -90,6 +91,10 @@ export default class GameModeComponent extends React.Component {
             this.setState({maxDifficulties: retrievedMaxDifficulties});
         });
     }
+
+    _onStartGamePressedInDifficultyScreen = (selectedDifficulty) => {
+        this.props.navigation.navigate('Game', {mode: this.state.selectedGameMode, difficulty: selectedDifficulty});
+    }
     
     /**
      * Helper function to transition to Choose Difficulty screen.
@@ -97,7 +102,6 @@ export default class GameModeComponent extends React.Component {
      * @param {GameMode} gameMode - Enum value of GameUtils.GameMode
      */
     _showChooseDifficultyScreen(gameMode) {
-        //this.props.navigation.navigate('Game', {mode: gameMode, difficulty: 1});
         this.setState({
             gameModeScreen: GameModeScreen.CHOOSE_DIFFICULTY,
             selectedGameMode: gameMode,
@@ -145,17 +149,21 @@ function GameModePanelComponent(props){
  * Component that displays the Choose Difficulty screen
  * @class
  * 
+ * @member {number} state.selectedDifficulty - Value from spinner
  * @member {GameMode} props.selectedGameMode
  * @member {number} props.maxDifficulty 
+ * @member {function(number)} props.onStartGamePressed - Callback, accepts selected difficulty
  */
 class ChooseDifficultyComponent extends React.Component{
 
     constructor(props){
         super(props);
-        this.selectedDifficulty = 1;
+        this.state = {
+            selectedDifficulty : props.maxDifficulty,
+        }
     }
 
-    static HINT_STRING = `Hint: Achieve a score of 95% or higher to unlock the next difficulty level!`;
+    static HINT_STRING = `Hint: Achieve a score of 50% or higher to unlock the next difficulty level!`;
 
     render(){
         let bgColor;
@@ -174,7 +182,7 @@ class ChooseDifficultyComponent extends React.Component{
                 <View style={styles.difficultyBodyContainer}>
                     <SpinnerComponent range={{min: 1, max: this.props.maxDifficulty}} onValueChanged={this._onSpinnerValueChanged}/>
                     <Text style={styles.difficultyHintText}>{ChooseDifficultyComponent.HINT_STRING}</Text>
-                    <ButtonComponent text={'Start Game'} onPress={this._onStartGamePressed}/>
+                    <ButtonComponent text={'Start Game'} onPress={() => {this.props.onStartGamePressed(this.state.selectedDifficulty)}}/>
                 </View>
             </SafeAreaView>
         );
@@ -182,13 +190,9 @@ class ChooseDifficultyComponent extends React.Component{
 
 
     _onSpinnerValueChanged = (newValue) => {
-        this.selectedDifficulty = newValue;
+        this.setState({selectedDifficulty : newValue});
     }
 
-    _onStartGamePressed = () => {
-        //TODO: Navigate to game
-        console.log('Selected Difficulty: ' + this.selectedDifficulty);
-    }
 }
 
 /**

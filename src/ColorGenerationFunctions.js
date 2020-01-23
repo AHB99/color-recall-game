@@ -94,8 +94,8 @@ function isListOfLabColorsTooSimilarToCorrectAnswer(correctLabColor, listOfLabCo
  * originalLabColor 
  */
 function generateListOfSimilarLabColorBundles(originalLabColor, numberOfColors, deltaLimit, abRange){
-    let numOfColsInASide = numberOfColors/2;
-    let numOfColsInBSide = numberOfColors/2;
+    let numOfColsInASide = Math.floor(numberOfColors/2);
+    let numOfColsInBSide = Math.floor(numberOfColors/2);
 
     //If odd, randomly add extra to a or b
     if ((numberOfColors % 2) !== 0){

@@ -45,7 +45,7 @@ export default class RewardComponent extends React.Component {
                     <Text style={styles.mainText}>Results</Text>
                 </View>
                 <View style={styles.container}>
-                    <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}!</Text>
+                    <Text style={styles.rewardText}>You scored {this.props.currentRoundScore}%!</Text>
                     {totalScoreComponent}
                 </View>       
                 <View style={styles.footerContainer}>
@@ -94,7 +94,7 @@ export default class RewardComponent extends React.Component {
             );
         }
         else{
-            return (<Text style={styles.rewardText}>Total score: {this.props.totalScore}</Text>);
+            return (<Text style={styles.rewardText}>Total score: {this.props.totalScore}/{this.props.maxScore}</Text>);
         }
         
     }

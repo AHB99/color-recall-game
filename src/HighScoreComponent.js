@@ -118,9 +118,17 @@ export default class HighScoreComponent extends React.Component{
             retrievedScoreLists.accuracyList = this._convertScoreListToSectionList(retrievedScoreLists.accuracyList);
             retrievedScoreLists.speedList = this._convertScoreListToSectionList(retrievedScoreLists.speedList);
 
+            //Sort in descending order
+            this._sortSectionListDescending(retrievedScoreLists.accuracyList);
+            this._sortSectionListDescending(retrievedScoreLists.speedList);
+
             //Update state
             this.setState({allHighScores: retrievedScoreLists});
          });
+    }
+
+    _sortSectionListDescending(list){
+        list.sort((a,b) => { return (b.title-a.title);} );
     }
 
     /**

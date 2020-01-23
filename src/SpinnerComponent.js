@@ -60,7 +60,7 @@ export default class SpinnerComponent extends React.Component {
 }
 
 /**
- * Component that specializes Button Component for +/- symbols
+ * Component that provides buttons for +/- symbols for Spinner Component
  * @function
  * 
  * @param {string} props.symbol - Whether '+' or '-'
@@ -70,8 +70,11 @@ export default class SpinnerComponent extends React.Component {
 function MinusPlusButtonComponent(props){
     let bgColor = props.isActive ? '#2196F3' : '#ACD8FA';
     return (
-        <ButtonComponent text={props.symbol} onPress={props.onPress}
-        fontSize={40} borderRadius={10} backgroundColor={bgColor} margin={20}/>
+        <TouchableHighlight style={[styles.spinnerButtonContainer, {backgroundColor: bgColor}]} onPress={props.onPress}>
+                <Text style={styles.spinnerButtonTextStyle}>
+                    {props.symbol}
+                </Text>
+        </TouchableHighlight>
     );
 }
 
@@ -86,5 +89,14 @@ let styles = StyleSheet.create({
     spinnerTextStyle: {
         fontSize: 55,
         color: 'white',
+    },
+    spinnerButtonContainer: {
+        borderRadius: 10,
+        margin: 20,
+        width: 50,
+    },
+    spinnerButtonTextStyle: {
+        fontSize: 40,
+        textAlign: 'center',
     }
 });

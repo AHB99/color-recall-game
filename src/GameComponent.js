@@ -19,7 +19,6 @@ import * as DbRepo from './DbRepo';
  * 
  * @member {GameMode} props.navigation.state.params.mode - Current game mode
  * @member {GameMode} props.navigation.state.params.difficulty - Current game difficulty level
- * @member {number} roundTime - Duration of Recall and Remember time period
  * @member {GameScreen} state.gameScreen - Current game screen to display
  * @member {RgbColorBundle[]} state.currentListOfColors - List of color choices for Recall screen
  * @member {{L: number, a: number, b: number}} state.currentLabColor
@@ -47,7 +46,6 @@ export default class GameComponent extends React.Component {
     constructor(props){
         super(props);
         this.state = this._generateInitialState();
-        this.roundTime = 2;
     }
 
     render(){
@@ -55,7 +53,7 @@ export default class GameComponent extends React.Component {
             let currentRgbString = ColorGenerationFunctions.convertLabColorToRgbString(this.state.currentLabColor);
             return <RememberComponent 
             color={currentRgbString} 
-            initialTime={this.roundTime}
+            initialTime={MainGameConstants.ROUND_TIME}
             onTimeExpired={this._onRememberTimeExpired}
             roundNumber={this.state.roundNumber} />
         }
@@ -63,7 +61,7 @@ export default class GameComponent extends React.Component {
             return <RecallComponent 
             currentListOfColors={this.state.currentListOfColors}
             onColorChoiceSelected={this._onColorChoiceSelectedInRecall}
-            initialTime={this.roundTime}
+            initialTime={MainGameConstants.ROUND_TIME}
             onTimeExpired={this._onRecallTimeExpired}
             roundNumber={this.state.roundNumber} />;
         }       
@@ -146,6 +144,7 @@ export default class GameComponent extends React.Component {
             });
         });
         if (this.state.roundNumber === MainGameConstants.MAX_ROUNDS){
+            debugger;
             this._updateHighScores();
         }
     }
@@ -187,7 +186,7 @@ export default class GameComponent extends React.Component {
             roundScore = 0;
         }
         else {
-            roundScore = 100*(timeLeft / this.roundTime );
+            roundScore = 100*(timeLeft / MainGameConstants.ROUND_TIME );
         }
         return roundScore;
     }
@@ -237,7 +236,7 @@ export default class GameComponent extends React.Component {
     _getRandomLabColorAndListOfSimilarRgbColors(){
         let { labColor, listOfSimilarColors } = 
         ColorGenerationFunctions.generateRandomLabColorAndFairListOfSimilarRgbColors(
-            MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES,
+            this._getNumberOfColorsBasedOnDifficulty(),
             MainGameConstants.DELTA_LIMIT,
             MainGameConstants.VALID_LAB_L_RANGE,
             MainGameConstants.VALID_LAB_AB_RANGE);
@@ -253,11 +252,20 @@ export default class GameComponent extends React.Component {
     _getRandomLabColorAndListOfUnrelatedRgbColors(){
         let { labColor, listOfUnrelatedColors } = 
         ColorGenerationFunctions.generateRandomLabColorAndListOfUnrelatedRgbColorBundles(
-            MainGameConstants.NUM_OF_SIMILAR_COLOR_CHOICES);
+            this._getNumberOfColorsBasedOnDifficulty());
 
         GameUtils.shuffle(listOfUnrelatedColors);
         console.log(JSON.stringify(listOfUnrelatedColors));
         return ({labColor: labColor, listOfColors: listOfUnrelatedColors});
+    }
+
+    /**
+     * @returns {number}
+     */
+    _getNumberOfColorsBasedOnDifficulty(){
+        let a =  (4 + this._getCurrentGameDifficulty() - 1);
+        console.log('num' + a);
+        return a;
     }
     
     /**
@@ -289,6 +297,7 @@ export default class GameComponent extends React.Component {
 
     _updateHighScores(){
         this.setState((state, props) => {
+            debugger;
 
             let currentDifficultyList = this._getCurrentDifficultyList(state);
 
@@ -299,17 +308,18 @@ export default class GameComponent extends React.Component {
             }
             
             //Update difficulty list with current score
-            if (currentDifficultyList.scoresList.length < MainGameConstants.MAX_HIGH_SCORES){
-                currentDifficultyList.scoresList.push(this._getFinalGameScore(state));
-                GameUtils.sortNumericDescending(currentDifficultyList.scoresList);
+            currentDifficultyList.scoresList.push(this._getFinalGameScore(state));
+            GameUtils.sortNumericDescending(currentDifficultyList.scoresList);
+            if (currentDifficultyList.scoresList.length > MainGameConstants.MAX_HIGH_SCORES){
+                currentDifficultyList.scoresList = currentDifficultyList.scoresList.slice(0,MainGameConstants.MAX_HIGH_SCORES+1);
             }
+            
+            //Update max difficulty to Db, if new level unlocked
+            this._updateMaxDifficulty(state, currentDifficultyList);
 
             //Save to Db
             DbRepo.saveHighScoreListPerGameMode(this._getCurrentGameMode(), state.highScoresOfGameMode);
 
-            
-            //Update max difficulty to Db, if new level unlocked
-            this._updateMaxDifficulty();
 
             
             return ({
@@ -343,13 +353,12 @@ export default class GameComponent extends React.Component {
     }
 
     _updateMaxDifficulty(currentState, currentDifficultyList){
+        debugger;
         //If current score doesn't pass unlock threshold, abort
         if (this._getFinalGameScore(currentState) < MainGameConstants.UNLOCK_DIFFICULTY_SCORE_THRESHOLD) return;
         //If current difficulty not highest available, abort
         let maxDifficulty = Math.max(...(currentState.highScoresOfGameMode.map((diffList) => {return diffList.difficulty;})));
         if (maxDifficulty !== this._getCurrentGameDifficulty()) return;
-        //If pre-existing score already passes threshold, abort
-        if (currentDifficultyList.scoresList.find((score) => {return (score >= MainGameConstants.UNLOCK_DIFFICULTY_SCORE_THRESHOLD);})) return;
 
         //If all tests pass, update DB with new max difficulty
         DbRepo.saveMaxDifficultyPerGameMode(this._getCurrentGameMode(), this._getCurrentGameDifficulty() + 1);
