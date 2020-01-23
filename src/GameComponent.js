@@ -290,36 +290,69 @@ export default class GameComponent extends React.Component {
     _updateHighScores(){
         this.setState((state, props) => {
 
-            //Find index of difficulty list for current difficulty
-            const currentDifficultyListIndex = state.highScoresOfGameMode.findIndex(
-                (diffList) => {return (diffList.difficulty === this._getCurrentGameDifficulty());}
-            );
-            
-            let currentDifficultyList;
+            let currentDifficultyList = this._getCurrentDifficultyList(state);
 
-            //Find difficulty list using index
-            if (currentDifficultyListIndex !== -1){
-                currentDifficultyList = state.highScoresOfGameMode[currentDifficultyListIndex];
-            }
-            else {
-                //If no list yet for current difficulty, create one and add to old state list.
+            //If no list yet for current difficulty, create one and add to old state list.        
+            if (currentDifficultyList === null){
                 currentDifficultyList = {difficulty: this._getCurrentGameDifficulty(), scoresList: []};
                 state.highScoresOfGameMode.push(currentDifficultyList);
             }
-
+            
             //Update difficulty list with current score
             if (currentDifficultyList.scoresList.length < MainGameConstants.MAX_HIGH_SCORES){
-                currentDifficultyList.scoresList.push(Math.floor(100*(state.totalScore/(100*MainGameConstants.MAX_ROUNDS))));
+                currentDifficultyList.scoresList.push(this._getFinalGameScore(state));
                 GameUtils.sortNumericDescending(currentDifficultyList.scoresList);
             }
 
             //Save to Db
             DbRepo.saveHighScoreListPerGameMode(this._getCurrentGameMode(), state.highScoresOfGameMode);
+
+            
+            //Update max difficulty to Db, if new level unlocked
+            this._updateMaxDifficulty();
+
             
             return ({
                 highScoresOfGameMode: state.highScoresOfGameMode,
             });
         });
+    }
+
+    /**
+     * Helper function to get current difficulty list
+     * 
+     * @param {State} currentState
+     * @returns {{difficulty: number, scoresList: [number]}} - Returns current list, or null if non-existent.
+     */
+    _getCurrentDifficultyList(currentState){
+        //Find index of difficulty list for current difficulty
+        const currentDifficultyListIndex = currentState.highScoresOfGameMode.findIndex(
+            (diffList) => {return (diffList.difficulty === this._getCurrentGameDifficulty());}
+        );
+
+        if (currentDifficultyListIndex !== -1){
+            return currentState.highScoresOfGameMode[currentDifficultyListIndex];
+        }
+        else {
+            return null;
+        }
+    }
+
+    _getFinalGameScore(currentState){
+        return Math.floor(100*(currentState.totalScore/(100*MainGameConstants.MAX_ROUNDS)))
+    }
+
+    _updateMaxDifficulty(currentState, currentDifficultyList){
+        //If current score doesn't pass unlock threshold, abort
+        if (this._getFinalGameScore(currentState) < MainGameConstants.UNLOCK_DIFFICULTY_SCORE_THRESHOLD) return;
+        //If current difficulty not highest available, abort
+        let maxDifficulty = Math.max(...(currentState.highScoresOfGameMode.map((diffList) => {return diffList.difficulty;})));
+        if (maxDifficulty !== this._getCurrentGameDifficulty()) return;
+        //If pre-existing score already passes threshold, abort
+        if (currentDifficultyList.scoresList.find((score) => {return (score >= MainGameConstants.UNLOCK_DIFFICULTY_SCORE_THRESHOLD);})) return;
+
+        //If all tests pass, update DB with new max difficulty
+        DbRepo.saveMaxDifficultyPerGameMode(this._getCurrentGameMode(), this._getCurrentGameDifficulty() + 1);
     }
 }
 

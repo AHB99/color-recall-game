@@ -11,10 +11,16 @@ import RecallComponent from './RecallComponent';
 import * as GameStyles from './GameStyles';
 import ButtonComponent from './ButtonComponent';
 import SpinnerComponent from './SpinnerComponent';
+import * as DbRepo from './DbRepo';
+
 
 /**
  * Component to display screen to choose Game Mode.
  * @class
+ * 
+ * @member {GameModeScreen} state.gameModeScreen - Enum value representing current screen to display.
+ * @member {GameMode} state.selectedGameMode - Enum value representing selected Game Mode.
+ * @member {{accuracyMaxDifficulty: number, speedMaxDifficulty: number}} state.maxDifficulties
  */
 export default class GameModeComponent extends React.Component {
 
@@ -35,7 +41,7 @@ export default class GameModeComponent extends React.Component {
         this.state = {
             gameModeScreen: GameModeScreen.CHOOSE_GAME_MODE,
             selectedGameMode: null,
-
+            maxDifficulties: null,
         }
     }
 
@@ -58,12 +64,31 @@ export default class GameModeComponent extends React.Component {
                 </SafeAreaView>
             );
         }
-        else if (this.state.gameModeScreen === GameModeScreen.CHOOSE_DIFFICULTY){
+        else if ((this.state.gameModeScreen === GameModeScreen.CHOOSE_DIFFICULTY) && (this.state.maxDifficulties !== null) ){          
+            console.log(this._getMaxDifficultyForCurrentGameMode());
             return (
-                <ChooseDifficultyComponent selectedGameMode={this.state.selectedGameMode}/>
+                <ChooseDifficultyComponent selectedGameMode={this.state.selectedGameMode}
+                maxDifficulty={this._getMaxDifficultyForCurrentGameMode()}/>
             );
         }
+        else {
+            console.log('Error, no screen available.');
+            return null;
+        }
         
+    }
+
+    /**
+     * Standard callback that runs when screen initializes
+     * 
+     * Callback implemented to pull high scores from database.
+     */
+    componentDidMount(){
+        DbRepo.getMaxDifficultiesOfAllGameModes()
+        .then((retrievedMaxDifficulties) => {
+            console.log(JSON.stringify(retrievedMaxDifficulties));
+            this.setState({maxDifficulties: retrievedMaxDifficulties});
+        });
     }
     
     /**
@@ -77,6 +102,15 @@ export default class GameModeComponent extends React.Component {
             gameModeScreen: GameModeScreen.CHOOSE_DIFFICULTY,
             selectedGameMode: gameMode,
         });
+    }
+
+    _getMaxDifficultyForCurrentGameMode(){
+        if (this.state.selectedGameMode === GameMode.ACCURACY){
+            return this.state.maxDifficulties.accuracyMaxDifficulty;
+        }
+        else if (this.state.selectedGameMode === GameMode.SPEED){
+            return this.state.maxDifficulties.speedMaxDifficulty;
+        }
     }
 
 }
@@ -112,7 +146,7 @@ function GameModePanelComponent(props){
  * @class
  * 
  * @member {GameMode} props.selectedGameMode
- * @member {Array}
+ * @member {number} props.maxDifficulty 
  */
 class ChooseDifficultyComponent extends React.Component{
 
@@ -138,13 +172,14 @@ class ChooseDifficultyComponent extends React.Component{
                     <Text style={styles.difficultyTitleText}>Choose Difficulty</Text>
                 </View>
                 <View style={styles.difficultyBodyContainer}>
-                    <SpinnerComponent range={{min: 1, max: 5}} onValueChanged={this._onSpinnerValueChanged}/>
+                    <SpinnerComponent range={{min: 1, max: this.props.maxDifficulty}} onValueChanged={this._onSpinnerValueChanged}/>
                     <Text style={styles.difficultyHintText}>{ChooseDifficultyComponent.HINT_STRING}</Text>
                     <ButtonComponent text={'Start Game'} onPress={this._onStartGamePressed}/>
                 </View>
             </SafeAreaView>
         );
     }
+
 
     _onSpinnerValueChanged = (newValue) => {
         this.selectedDifficulty = newValue;

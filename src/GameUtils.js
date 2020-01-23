@@ -26,6 +26,7 @@ export const MainGameConstants = {
         max: 80
     },
     MAX_HIGH_SCORES: 10,
+    UNLOCK_DIFFICULTY_SCORE_THRESHOLD: 95,
 }
 
 /**
@@ -34,6 +35,8 @@ export const MainGameConstants = {
 export const DbKeys = {
     ACCURACY_HIGH_SCORE_LIST: 'ACCURACY_HIGH_SCORE_LIST',
     SPEED_HIGH_SCORE_LIST: 'SPEED_HIGH_SCORE_LIST',
+    ACCURACY_MAX_DIFFICULTY: 'ACCURACY_MAX_DIFFICULTY',
+    SPEED_MAX_DIFFICULTY: 'SPEED_MAX_DIFFICULTY',
 }
 
 /**

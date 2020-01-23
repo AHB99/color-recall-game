@@ -18,6 +18,7 @@ export async function getHighScoreListPerGameMode(gameMode){
 
 /** 
  * @param {GameMode} gameMode 
+ * @param {{[{difficulty: number, scoresList: [number]}]}} highScoresForGameMode
  * @returns {Promise} - A Promise in case callbacks are required
  */
 export async function saveHighScoreListPerGameMode(gameMode, highScoresForGameMode){
@@ -45,6 +46,65 @@ export function getHighScoreListsofAllGameModes() {
         retrievedHighScores.speedList = speedList;
         return retrievedHighScores;
     })); 
+}
+
+/** 
+ * @param {GameMode} gameMode 
+ * @returns {Promise} - A Promise containing the relevant max difficulty, default 1 if not available.
+ */
+export async function getMaxDifficultyPerGameMode(gameMode){
+    if (gameMode === GameMode.ACCURACY){
+        return getMaxDifficultyPerKey(DbKeys.ACCURACY_MAX_DIFFICULTY);
+    }
+    else if (gameMode === GameMode.SPEED){
+        return getMaxDifficultyPerKey(DbKeys.SPEED_MAX_DIFFICULTY);
+    } 
+}
+
+/** 
+ * @returns {Promise} - A Promise containing data of type {accuracyMaxDifficulty: number, speedMaxDifficulty: number}
+ */
+export function getMaxDifficultiesOfAllGameModes(){
+    let retrievedMaxDifficulties = {};
+    return (getMaxDifficultyPerGameMode(GameMode.ACCURACY)
+    .then((accuracyMax) => {
+        console.log('accuracyMax' + accuracyMax);
+        retrievedMaxDifficulties.accuracyMaxDifficulty = accuracyMax;
+        return getMaxDifficultyPerGameMode(GameMode.SPEED);
+    })
+    .then((speedMax) => {
+        retrievedMaxDifficulties.speedMaxDifficulty = speedMax;
+        return retrievedMaxDifficulties;
+    })); 
+}
+
+/** 
+ * @param {GameMode} gameMode 
+ * @param {number} maxDifficulty 
+ * @returns {Promise} - A Promise in case callbacks are required
+ */
+export async function saveMaxDifficultyPerGameMode(gameMode, maxDifficulty){
+    if (gameMode === GameMode.ACCURACY){
+        return saveDataToDb(DbKeys.ACCURACY_MAX_DIFFICULTY, maxDifficulty);
+    }
+    else if (gameMode === GameMode.SPEED){
+        return saveDataToDb(DbKeys.SPEED_MAX_DIFFICULTY, maxDifficulty);
+    }
+}
+
+/**
+ * Helper function to retrieve max difficulty level or 1 if not found
+ * @param {string} key 
+ * @returns {Promise}
+ */
+async function getMaxDifficultyPerKey(key){
+    return loadDataFromDb(key)
+    .then((maxDifficulty) => {
+        if (maxDifficulty !== null) { 
+            return maxDifficulty; 
+        }
+        else { return 1; }
+    });   
 }
 
 /**
@@ -93,6 +153,9 @@ async function loadDataFromDb(key){
         const value = await AsyncStorage.getItem(key)
         if(value !== null) {
           return JSON.parse(value);
+        }
+        else {
+            return null;
         }
       } catch(e) {
         console.log('DB Error: ' + e);
