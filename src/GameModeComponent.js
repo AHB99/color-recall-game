@@ -28,32 +28,55 @@ export default class GameModeComponent extends React.Component {
     static ACCURACY_DESC = `Recall a color from a list of similar colors. The closer you are, the higher your score.`;
     static SPEED_DESC = `Recall a color from a list of random colors. The faster you are, the higher your score.`;
 
+
+    constructor(props){
+        super(props);
+        this.state = {
+            gameModeScreen: GameModeScreen.CHOOSE_GAME_MODE,
+            selectedGameMode: null,
+
+        }
+    }
+
     render(){
-        return (
-            <SafeAreaView style={styles.bodyContainer}>
-                <GameModePanelComponent gameModeText={'Accuracy Mode'}
-                descriptionText={GameModeComponent.ACCURACY_DESC}
-                backgroundColor={GameStyles.accuracyBgColor} 
-                gameModeTextColor={GameStyles.accuracyTextColor}
-                descriptionTextColor={GameStyles.accuracyDescColor}
-                onPress={() => {this._navigateToGame(GameMode.ACCURACY)}}/>
-                <GameModePanelComponent gameModeText={'Speed Mode'}
-                descriptionText={GameModeComponent.SPEED_DESC}
-                backgroundColor={GameStyles.speedBgColor} 
-                gameModeTextColor={GameStyles.speedTextColor}
-                descriptionTextColor={GameStyles.speedDescColor}
-                onPress={() => {this._navigateToGame(GameMode.SPEED)}}/>
-            </SafeAreaView>
-        );
+        if (this.state.gameModeScreen === GameModeScreen.CHOOSE_GAME_MODE){
+            return (
+                <SafeAreaView style={styles.bodyContainer}>
+                    <GameModePanelComponent gameModeText={'Accuracy Mode'}
+                    descriptionText={GameModeComponent.ACCURACY_DESC}
+                    backgroundColor={GameStyles.accuracyBgColor} 
+                    gameModeTextColor={GameStyles.accuracyTextColor}
+                    descriptionTextColor={GameStyles.accuracyDescColor}
+                    onPress={() => {this._showChooseDifficultyScreen(GameMode.ACCURACY)}}/>
+                    <GameModePanelComponent gameModeText={'Speed Mode'}
+                    descriptionText={GameModeComponent.SPEED_DESC}
+                    backgroundColor={GameStyles.speedBgColor} 
+                    gameModeTextColor={GameStyles.speedTextColor}
+                    descriptionTextColor={GameStyles.speedDescColor}
+                    onPress={() => {this._showChooseDifficultyScreen(GameMode.SPEED)}}/>
+                </SafeAreaView>
+            );
+        }
+        else if (this.state.gameModeScreen === GameModeScreen.CHOOSE_DIFFICULTY){
+            return (
+                <ChooseDifficultyComponent selectedGameMode={this.state.selectedGameMode}/>
+            );
+        }
+        
     }
     
     /**
-     * Helper function to transition to GameComponent.
+     * Helper function to transition to Choose Difficulty screen.
      * 
      * @param {GameMode} gameMode - Enum value of GameUtils.GameMode
      */
-    _navigateToGame(gameMode) {
-        this.props.navigation.navigate('Game', {mode: gameMode, difficulty: 1});
+    _showChooseDifficultyScreen(gameMode) {
+        //this.props.navigation.navigate('Game', {mode: gameMode, difficulty: 1});
+        this.setState({
+            gameModeScreen: GameModeScreen.CHOOSE_DIFFICULTY,
+            selectedGameMode: gameMode,
+
+        });
     }
 
 }
@@ -84,6 +107,38 @@ function GameModePanelComponent(props){
     );
 }
 
+/**
+ * Component that displays the Choose Difficulty screen
+ * @class
+ * 
+ * @member {GameMode} props.selectedGameMode
+ */
+class ChooseDifficultyComponent extends React.Component{
+
+    render(){
+        let bgColor;
+        if (this.props.selectedGameMode === GameMode.ACCURACY){ bgColor = GameStyles.accuracyBgColor;}
+        else if (this.props.selectedGameMode === GameMode.SPEED) { bgColor = GameStyles.speedBgColor; }
+
+        return (
+            <SafeAreaView style={[styles.difficultyContainer, {backgroundColor: bgColor}]}>
+
+            </SafeAreaView>
+        );
+    }
+}
+
+/**
+ * Enum of all screens for Game Mode to display
+ * @enum
+ */
+const GameModeScreen = Object.freeze({
+    CHOOSE_GAME_MODE: Symbol("chooseGameMode"),
+    CHOOSE_DIFFICULTY: Symbol("chooseDifficulty"),
+});
+
+
+//Styles
 let styles = StyleSheet.create({
     bodyContainer: {
         justifyContent: 'center',
@@ -109,4 +164,9 @@ let styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '600'
     },
+    difficultyContainer: {
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        flex: 1,
+    }
 });

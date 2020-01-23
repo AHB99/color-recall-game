@@ -29,6 +29,23 @@ export async function saveHighScoreListPerGameMode(gameMode, highScoresForGameMo
     }
 }
 
+/**
+ * @returns {Promise} - Promise with resolve data of type
+ * {{accuracyList: [{difficulty: number, scoresList: [number]}], 
+ * speedList: [{difficulty: number, scoresList: [number]}]}}
+ */
+export function getHighScoreListsofAllGameModes() {
+    let retrievedHighScores = {};
+    return (getHighScoreListPerGameMode(GameMode.ACCURACY)
+    .then((accuracyList) => {
+        retrievedHighScores.accuracyList = accuracyList;
+        return getHighScoreListPerGameMode(GameMode.SPEED);
+    })
+    .then((speedList) => {
+        retrievedHighScores.speedList = speedList;
+        return retrievedHighScores;
+    })); 
+}
 
 /**
  * Helper function to retrieve relevant high score list or empty list if not found

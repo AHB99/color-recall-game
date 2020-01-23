@@ -112,19 +112,15 @@ export default class HighScoreComponent extends React.Component{
      * Helper function to update state with all high score lists from database
      */
     _loadAllHighScoreListsFromDb(){
-        let retrievedHighScores = {};
-        //Retrieve relevant high score list and update state with it
-        DbRepo.getHighScoreListPerGameMode(GameMode.ACCURACY)
-        .then((accuracyList) => {
-            accuracyList = this._convertScoreListToSectionList(accuracyList);
-            retrievedHighScores.accuracyList = accuracyList;
-            return DbRepo.getHighScoreListPerGameMode(GameMode.SPEED);
-        })
-        .then((speedList) => {
-            speedList = this._convertScoreListToSectionList(speedList);
-            retrievedHighScores.speedList = speedList;
-            this.setState({allHighScores: retrievedHighScores});
-        }); 
+         DbRepo.getHighScoreListsofAllGameModes()
+         .then((retrievedScoreLists) => {
+            //Convert lists to SectionList API format
+            retrievedScoreLists.accuracyList = this._convertScoreListToSectionList(retrievedScoreLists.accuracyList);
+            retrievedScoreLists.speedList = this._convertScoreListToSectionList(retrievedScoreLists.speedList);
+
+            //Update state
+            this.setState({allHighScores: retrievedScoreLists});
+         });
     }
 
     /**
@@ -134,11 +130,7 @@ export default class HighScoreComponent extends React.Component{
      * @returns {[{title: number, data: [number]}]}
      */
     _convertScoreListToSectionList(scoreList){
-        console.log(JSON.stringify(scoreList));
-
-        let a = scoreList.map((item) => { return ({title : item.difficulty, data: item.scoresList}); });
-        console.log(JSON.stringify(a));
-        return a;
+        return scoreList.map((item) => { return ({title : item.difficulty, data: item.scoresList}); });
     }
 }
 
