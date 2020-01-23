@@ -86,11 +86,4 @@ export const mainHomeTitle = {
 //Colors
 export const gameButtonColor = '#29ff84';
 
-export const accuracyBgColor = '#7BE4FB';
-export const speedBgColor = '#F96646';
 
-export const accuracyTextColor = '#F8502C';
-export const speedTextColor = '#46D9F9';
-
-export const accuracyDescColor = '#DA593D';
-export const speedDescColor = '#61DFFA';

@@ -1,6 +1,6 @@
 'use strict'
 import React from 'react';
-import { Text, StyleSheet, SafeAreaView, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TouchableHighlight } from 'react-native';
 
 import * as ColorGenerationFunctions from './ColorGenerationFunctions';
 import { MainGameConstants, RgbColorBundle, GameMode } from './GameUtils';
@@ -10,6 +10,7 @@ import RewardComponent from './RewardComponent';
 import RecallComponent from './RecallComponent'; 
 import * as GameStyles from './GameStyles';
 import ButtonComponent from './ButtonComponent';
+import SpinnerComponent from './SpinnerComponent';
 
 /**
  * Component to display screen to choose Game Mode.
@@ -44,15 +45,15 @@ export default class GameModeComponent extends React.Component {
                 <SafeAreaView style={styles.bodyContainer}>
                     <GameModePanelComponent gameModeText={'Accuracy Mode'}
                     descriptionText={GameModeComponent.ACCURACY_DESC}
-                    backgroundColor={GameStyles.accuracyBgColor} 
-                    gameModeTextColor={GameStyles.accuracyTextColor}
-                    descriptionTextColor={GameStyles.accuracyDescColor}
+                    backgroundColor={accuracyBgColor} 
+                    gameModeTextColor={accuracyTextColor}
+                    descriptionTextColor={accuracyDescColor}
                     onPress={() => {this._showChooseDifficultyScreen(GameMode.ACCURACY)}}/>
                     <GameModePanelComponent gameModeText={'Speed Mode'}
                     descriptionText={GameModeComponent.SPEED_DESC}
-                    backgroundColor={GameStyles.speedBgColor} 
-                    gameModeTextColor={GameStyles.speedTextColor}
-                    descriptionTextColor={GameStyles.speedDescColor}
+                    backgroundColor={speedBgColor} 
+                    gameModeTextColor={speedTextColor}
+                    descriptionTextColor={speedDescColor}
                     onPress={() => {this._showChooseDifficultyScreen(GameMode.SPEED)}}/>
                 </SafeAreaView>
             );
@@ -75,7 +76,6 @@ export default class GameModeComponent extends React.Component {
         this.setState({
             gameModeScreen: GameModeScreen.CHOOSE_DIFFICULTY,
             selectedGameMode: gameMode,
-
         });
     }
 
@@ -112,19 +112,47 @@ function GameModePanelComponent(props){
  * @class
  * 
  * @member {GameMode} props.selectedGameMode
+ * @member {Array}
  */
 class ChooseDifficultyComponent extends React.Component{
 
+    constructor(props){
+        super(props);
+        this.selectedDifficulty = 1;
+    }
+
+    static HINT_STRING = `Hint: Achieve a score of 95% or higher to unlock the next difficulty level!`;
+
     render(){
         let bgColor;
-        if (this.props.selectedGameMode === GameMode.ACCURACY){ bgColor = GameStyles.accuracyBgColor;}
-        else if (this.props.selectedGameMode === GameMode.SPEED) { bgColor = GameStyles.speedBgColor; }
+        if (this.props.selectedGameMode === GameMode.ACCURACY){ 
+            bgColor = accuracyBgColor;
+        }
+        else if (this.props.selectedGameMode === GameMode.SPEED) { 
+            bgColor = speedBgColor; 
+        }
 
         return (
             <SafeAreaView style={[styles.difficultyContainer, {backgroundColor: bgColor}]}>
-
+                <View style={styles.headerContainer}>
+                    <Text style={styles.difficultyTitleText}>Choose Difficulty</Text>
+                </View>
+                <View style={styles.difficultyBodyContainer}>
+                    <SpinnerComponent range={{min: 1, max: 5}} onValueChanged={this._onSpinnerValueChanged}/>
+                    <Text style={styles.difficultyHintText}>{ChooseDifficultyComponent.HINT_STRING}</Text>
+                    <ButtonComponent text={'Start Game'} onPress={this._onStartGamePressed}/>
+                </View>
             </SafeAreaView>
         );
+    }
+
+    _onSpinnerValueChanged = (newValue) => {
+        this.selectedDifficulty = newValue;
+    }
+
+    _onStartGamePressed = () => {
+        //TODO: Navigate to game
+        console.log('Selected Difficulty: ' + this.selectedDifficulty);
     }
 }
 
@@ -139,6 +167,23 @@ const GameModeScreen = Object.freeze({
 
 
 //Styles
+
+const accuracyBgColor = '#7BE4FB';
+const speedBgColor = '#F96646';
+
+const accuracyTextColor = '#F8502C';
+const speedTextColor = '#46D9F9';
+
+const accuracyDescColor = '#DA593D';
+const speedDescColor = '#61DFFA';
+
+const gameModeDescriptionText = {
+    fontSize: 22,
+    fontFamily: 'sans-serif-light',
+    textAlign: 'center',
+    fontWeight: '600'
+}
+
 let styles = StyleSheet.create({
     bodyContainer: {
         justifyContent: 'center',
@@ -158,15 +203,32 @@ let styles = StyleSheet.create({
         fontWeight: 'bold',
         margin: 20,
     },
-    gameModeDescriptionText: {
-        fontSize: 22,
-        fontFamily: 'sans-serif-light',
-        textAlign: 'center',
-        fontWeight: '600'
-    },
+    gameModeDescriptionText: gameModeDescriptionText,
     difficultyContainer: {
         justifyContent: 'flex-start',
         alignItems: 'center',
         flex: 1,
+    },
+    difficultyTitleText: {
+        fontSize: 50,
+        fontFamily: 'monospace',
+        textAlign: 'center',
+        margin: 25,
+        color: 'white'
+    },
+    difficultyHintText: {
+        ...gameModeDescriptionText, 
+        color: 'white',
+        fontSize: 26,
+    }, 
+    headerContainer: {
+        flex: 0,
+    }, 
+    difficultyBodyContainer: {
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        flex: 1,  
+        padding: 20,  
     }
+
 });
