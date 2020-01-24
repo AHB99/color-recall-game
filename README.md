@@ -6,8 +6,8 @@ A React Native app where players must remember colors to win. Developed in Javas
 
 ## Table of Contents
 * [Introduction](#introduction)
-* [Technologies Used](#technologies-used)
 * [Installation and Setup](#installation-and-setup)
+* [Technologies Used](#technologies-used)
 * [Game Overview](#game-overview)
 * [License](#license)
 
@@ -21,16 +21,10 @@ A React Native app where players must remember colors to win. Developed in Javas
 
 The app was fully coded in Javascript and developed using the React Native framework, and is hence cross-platform. Currently it is released for Android, with future plans for an iOS release.
 
-## Technologies Used
-* Javascript and JSX languages
-* [React Native](https://facebook.github.io/react-native/) v0.61.5
-* [React Navigation](https://reactnavigation.org/) v4.0.10
-* [React Native Async Storage](https://github.com/react-native-community/async-storage) v1.7.1
-
 ## Installation and Setup
 
 ### App Download
-For Android, simply download and install the APK file found with the latest version of the app on the Releases page of this repo. Requires Android 4.1+. Your phone may request certain confirmations during installation as the APK is not from the Google Play Store.
+For Android, simply [download and install the APK file here](https://github.com/AHB99/color-recall-game/releases/download/v1.0.0/ColorRecallGame-v1.0.0.apk), found with the latest version of the app on the Releases page of this repo. Requires Android 4.1+. Your phone may request certain confirmations during installation as the APK is not from the Google Play Store.
 
 ### Code Setup
 Alternatively, if you want the entire project code to use and build:
@@ -40,6 +34,12 @@ Alternatively, if you want the entire project code to use and build:
 * Install the node modules with `npm install`
 
 The app is now ready to run. On Android for example, run your emulator/connect your phone and run `npx react-native run-android` in the project folder.
+
+## Technologies Used
+* Javascript and JSX languages
+* [React Native](https://facebook.github.io/react-native/) v0.61.5
+* [React Navigation](https://reactnavigation.org/) v4.0.10
+* [React Native Async Storage](https://github.com/react-native-community/async-storage) v1.7.1
 
 ## Game Overview
 
