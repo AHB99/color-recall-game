@@ -60,3 +60,6 @@ buck-out/
 
 #React Native Tools
 /.vscode
+
+#Keystore
+android/keystore.properties
