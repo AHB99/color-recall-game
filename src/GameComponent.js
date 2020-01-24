@@ -111,15 +111,6 @@ export default class GameComponent extends React.Component {
                 });
             });
         }
-        else {
-            //this.props.navigation.navigate('GameMode');
-            const resetAction = StackActions.reset({
-                index: 0,
-                actions: [NavigationActions.navigate({ routeName: 'GameMode' })],
-              });
-              this.props.navigation.dispatch(resetAction);
-        }
-
     }
 
     _onGoHomePressedInReward = () => {

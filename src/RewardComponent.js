@@ -25,18 +25,18 @@ import ButtonComponent  from './ButtonComponent';
 export default class RewardComponent extends React.Component {
     render(){
         //Set advance button message and existence of Go home button based on game status
-        let advanceMessage;
+        let advanceButton = null;
         let goHomeButton = null;
         let totalScoreComponent = this._getTotalScoreComponent();
 
         if (this.props.isLastRound){
-            advanceMessage = 'New Game';
             goHomeButton = (
             <RewardButtonComponent text={'Go To Home'} onPress={this.props.onGoHomePressed} />);
         }
         else{
-            advanceMessage = 'Next Round';
+            advanceButton = (<RewardButtonComponent text={'Next Round'} onPress={this.props.onAdvancePressed} />);
         }
+
 
         return (
             <SafeAreaView style={styles.container}>
@@ -49,13 +49,13 @@ export default class RewardComponent extends React.Component {
                     {totalScoreComponent}
                 </View>       
                 <View style={styles.footerContainer}>
-                    <RewardButtonComponent text={advanceMessage} onPress={this.props.onAdvancePressed} />
+                    {advanceButton}
                     {goHomeButton}
                 </View>
             </SafeAreaView>
         );
     }
-
+ 
     /**
      * Helper function to find correct message given total game score as a percentage.
      * 
