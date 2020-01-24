@@ -110,7 +110,7 @@ export default class GameComponent extends React.Component {
             });
         }
         else {
-            this._restartGame();
+            this.props.navigation.navigate('GameMode');
         }
 
     }
