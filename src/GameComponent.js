@@ -1,6 +1,8 @@
 'use strict'
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { StackActions, NavigationActions } from 'react-navigation';
+
 
 import * as ColorGenerationFunctions from './ColorGenerationFunctions';
 import { MainGameConstants, RgbColorBundle, GameMode } from './GameUtils';
@@ -110,7 +112,12 @@ export default class GameComponent extends React.Component {
             });
         }
         else {
-            this.props.navigation.navigate('GameMode');
+            //this.props.navigation.navigate('GameMode');
+            const resetAction = StackActions.reset({
+                index: 0,
+                actions: [NavigationActions.navigate({ routeName: 'GameMode' })],
+              });
+              this.props.navigation.dispatch(resetAction);
         }
 
     }
